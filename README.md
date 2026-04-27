@@ -9,7 +9,7 @@ Instead of passive scrolling, DevCircle focuses on direct interaction through bo
 
 ## 🌐 Live Demo
 
-👉 Synapse Dev Network
+👉 
 
 ---
 
@@ -158,7 +158,7 @@ App runs on:http://localhost:3000
 
 Dimitrije Bukejlovic  
 GitHub: https://github.com/Dimson7777
-Portfolio:https://dimitrijeswebsite.lovable.app/
+Portfolio:
 
 ---
 
