@@ -9,7 +9,7 @@ Instead of passive scrolling, DevCircle focuses on direct interaction through bo
 
 ## 🌐 Live Demo
 
-👉 https://synapse-dev-network.lovable.app
+👉 Synapse Dev Network
 
 ---
 
