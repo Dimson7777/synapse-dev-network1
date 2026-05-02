@@ -12,12 +12,7 @@ import type { PostWithAuthor } from "@/types";
 
 const MAX_LENGTH = 2000;
 
-const PLACEHOLDERS = [
-  "Shipped something? Stuck on a bug? Share it.",
-  "What are you building right now?",
-  "Drop a code snippet, a tip, or a tiny win.",
-  "TIL... ?",
-];
+const POST_PLACEHOLDER = "Stuck on something? Start a session.\nOr share what you're building.";
 
 export default function CreatePostForm({
   onPostCreated,
@@ -31,10 +26,11 @@ export default function CreatePostForm({
   const [showLink, setShowLink] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [composerMode, setComposerMode] = useState<"post" | "session">("session");
 
   const overLimit = content.length > MAX_LENGTH;
   const canPost = content.trim().length > 0 && !overLimit && !submitting;
-  const placeholder = PLACEHOLDERS[0]; // keep stable per render — feels less random
+  const placeholder = POST_PLACEHOLDER;
 
   const insertAtCursor = (snippet: string, selectFrom?: number, selectTo?: number) => {
     const ta = textareaRef.current;
@@ -100,10 +96,12 @@ export default function CreatePostForm({
   return (
     <div
       className={cn(
-        "feed-card p-5 sm:p-6 transition-all duration-300",
-        focused && "ring-2 ring-primary/20 shadow-lg shadow-primary/5",
+        "feed-card relative overflow-hidden p-5 sm:p-6 transition-all duration-300",
+        focused && "ring-2 ring-primary/25 shadow-[0_14px_34px_-20px_hsl(var(--primary)/0.5)]",
       )}
     >
+      <div className="absolute -top-16 -right-12 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.22)_0%,transparent_72%)] pointer-events-none" aria-hidden />
+
       <div className="flex gap-3.5">
         <Avatar className="h-10 w-10 shrink-0 ring-2 ring-border">
           <AvatarImage src={profile?.avatar_url || undefined} />
@@ -113,6 +111,10 @@ export default function CreatePostForm({
         </Avatar>
 
         <div className="flex-1 space-y-3">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">
+            Start something
+          </div>
+
           <Textarea
             ref={textareaRef}
             placeholder={placeholder}
@@ -122,6 +124,29 @@ export default function CreatePostForm({
             onBlur={() => !content && setFocused(false)}
             className="min-h-[80px] resize-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0 placeholder:text-muted-foreground/50"
           />
+
+          <div className="inline-flex items-center gap-1 rounded-xl border border-border/70 bg-secondary/35 p-1">
+            <button
+              type="button"
+              onClick={() => setComposerMode("post")}
+              className={cn(
+                "h-7 px-3 rounded-lg text-xs font-medium transition-colors",
+                composerMode === "post" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Post
+            </button>
+            <button
+              type="button"
+              onClick={() => setComposerMode("session")}
+              className={cn(
+                "h-7 px-3 rounded-lg text-xs font-medium transition-colors",
+                composerMode === "session" ? "gradient-bg text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Start session
+            </button>
+          </div>
 
           {focused && (
             <p className="text-[11px] text-muted-foreground/70">
@@ -180,14 +205,19 @@ export default function CreatePostForm({
               size="sm"
               onClick={handlePost}
               disabled={!canPost}
-              className="h-9 px-4 rounded-xl gradient-bg border-0 text-primary-foreground hover:opacity-90 transition-opacity"
+              className={cn(
+                "h-9 px-4 rounded-xl border-0 text-primary-foreground transition-all duration-200",
+                composerMode === "session"
+                  ? "gradient-bg hover:opacity-95 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-12px_hsl(var(--primary)/0.55)]"
+                  : "bg-foreground/85 hover:bg-foreground text-background"
+              )}
             >
               {submitting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
                   <Send className="h-3.5 w-3.5 mr-1.5" />
-                  Post
+                  {composerMode === "session" ? "Start session" : "Post"}
                 </>
               )}
             </Button>

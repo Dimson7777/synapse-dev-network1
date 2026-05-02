@@ -145,7 +145,7 @@ export default function ExplorePage() {
     return (
       <div className="space-y-4 stagger-children">
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} onDelete={removePost} onUpdate={patchPost} />
+          <PostCard key={post.id} post={post} onDelete={removePost} onUpdate={patchPost} sessionActionLabel="Book session" />
         ))}
       </div>
     );
@@ -158,7 +158,7 @@ export default function ExplorePage() {
     <AppLayout>
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
         {/* Main content */}
-        <div className="space-y-6 min-w-0">
+        <div className="space-y-7 min-w-0">
           {/* Header */}
           <div className="flex items-center gap-3">
             <div className="h-11 w-11 rounded-2xl gradient-bg flex items-center justify-center shadow-md">
@@ -229,6 +229,8 @@ export default function ExplorePage() {
           )}
 
           {/* Tabs */}
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/20 to-transparent" aria-hidden />
+
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="w-full grid grid-cols-2 h-11 bg-secondary/50 rounded-xl p-1">
               <TabsTrigger value="trending" className="rounded-lg gap-2 data-[state=active]:shadow-sm transition-all">
@@ -251,7 +253,7 @@ export default function ExplorePage() {
         </div>
 
         {/* Sidebar */}
-        <aside className="hidden lg:block space-y-5">
+        <aside className="space-y-5">
           {/* Most active users */}
           <div className="feed-card p-5 animate-fade-in">
             <div className="flex items-center gap-2 mb-4">

@@ -25,6 +25,7 @@ import {
   X,
   Check,
   MoreHorizontal,
+  LifeBuoy,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -42,9 +43,10 @@ interface PostCardProps {
   post: PostWithAuthor;
   onDelete?: (postId: string) => void;
   onUpdate?: (updatedPost: PostWithAuthor) => void;
+  sessionActionLabel?: "Book session" | "Ask for help";
 }
 
-export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
+export default function PostCard({ post, onDelete, onUpdate, sessionActionLabel }: PostCardProps) {
   const { user } = useAuth();
   const author = post.profiles;
   const isOwner = user?.id === post.user_id;
@@ -60,6 +62,11 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
   const [editContent, setEditContent] = useState(post.content);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const sessionLabel = sessionActionLabel ?? (post.comments_count > 0 ? "Ask for help" : "Book session");
+
+  const handleSessionNudge = () => {
+    toast.success("Session prompt sent");
+  };
 
   const handleLike = async () => {
     if (!user) return;
@@ -129,7 +136,7 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
   };
 
   return (
-    <article className="feed-card group/card">
+    <article className="feed-card group/card hover:-translate-y-[1px] hover:border-primary/20 hover:shadow-[0_10px_28px_-18px_hsl(var(--primary)/0.45)]">
       <div className="p-5 sm:p-6">
         <div className="flex items-start gap-3.5">
           <Link to={`/u/${author?.username}`} className="shrink-0">
@@ -240,7 +247,7 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
         </div>
 
         {/* Action bar */}
-        <div className="mt-4 flex items-center gap-1 pl-[52px]">
+        <div className="mt-5 pt-3 border-t border-border/40 flex items-center gap-1 pl-[52px] flex-wrap">
           <Button
             variant="ghost"
             size="sm"
@@ -269,6 +276,16 @@ export default function PostCard({ post, onDelete, onUpdate }: PostCardProps) {
           >
             <MessageCircle className="h-4 w-4" />
             {commentsCount > 0 && <span className="tabular-nums">{commentsCount}</span>}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSessionNudge}
+            className="gap-1.5 text-xs h-8 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+          >
+            <LifeBuoy className="h-4 w-4" />
+            {sessionLabel}
           </Button>
 
           <Button
