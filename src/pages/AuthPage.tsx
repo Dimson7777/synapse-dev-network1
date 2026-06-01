@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowRight, ArrowUpRight, Code2, Braces, Activity, MessageSquare, Search, Calendar, Coffee, Circle, CheckCircle2, Loader2, X, XCircle, Zap, ShieldCheck, Clock, Users, BarChart3, ThumbsUp } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Code2, Braces, Activity, MessageSquare, Search, Calendar, Coffee, Circle, CheckCircle2, Loader2, X, XCircle, Zap, ShieldCheck, Clock, Users, BarChart3, ThumbsUp, Lock } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
 // ─── Animated dot-grid background ────────────────────────────────────────────
@@ -827,91 +827,295 @@ function HeroStats() {
   );
 }
 
+// ─── How it works ────────────────────────────────────────────────────────────
+// Premium interactive step timeline: glowing nodes connected by a purple→cyan
+// line with traveling light particles, an active-step pill, glassmorphism cards,
+// and feature badges. Clicking a node/card marks it active (local state); a card's
+// arrow fires a subtle toast. Transform/opacity-only motion, contained background,
+// calm prefers-reduced-motion fallback. Reuses existing tokens, glow + glass style.
+const HIW_PARTICLES = [
+  { left: "10%", top: "30%", size: "3px", delay: "0s", dur: "7.5s" },
+  { left: "26%", top: "68%", size: "2px", delay: "1.2s", dur: "9s" },
+  { left: "52%", top: "20%", size: "2px", delay: "0.5s", dur: "8s" },
+  { left: "68%", top: "72%", size: "3px", delay: "1.9s", dur: "10s" },
+  { left: "84%", top: "34%", size: "2px", delay: "0.3s", dur: "7s" },
+  { left: "92%", top: "64%", size: "2px", delay: "2.3s", dur: "9.5s" },
+] as const;
+
 function HowItWorks() {
   const reduced = usePrefersReducedMotion();
   const [ref, inView] = useInView<HTMLDivElement>();
+  // Default to the middle step (Step 2 of 3), matching the reference.
+  const [active, setActive] = useState(1);
 
   const steps = [
     {
-      icon: <Search className="h-4 w-4" />,
+      Icon: Search,
       title: "Find a developer",
       text: "Browse people building things you care about.",
-      ring: "from-indigo-400/70 to-indigo-500/0",
-      dot: "bg-indigo-400",
+      detail: "Browse builders by stack, interest, and what they're shipping.",
     },
     {
-      icon: <Calendar className="h-4 w-4" />,
+      Icon: Calendar,
       title: "Pick a time",
       text: "Open their profile, choose a slot that works.",
-      ring: "from-purple-400/70 to-purple-500/0",
-      dot: "bg-purple-400",
+      detail: "See open slots on their profile and grab one in a tap.",
     },
     {
-      icon: <Coffee className="h-4 w-4" />,
+      Icon: Coffee,
       title: "Talk, solve, ship",
       text: "30 focused minutes on a real problem.",
-      ring: "from-teal-400/70 to-teal-500/0",
-      dot: "bg-teal-400",
+      detail: "Jump into a focused 30-minute session and move forward.",
     },
   ];
 
+  // Per-step accent: purple → fuchsia/magenta → cyan (full class strings kept literal for Tailwind).
+  const accents = [
+    {
+      node: "text-purple-200",
+      ring: "from-purple-400/70 to-purple-500/0",
+      dot: "bg-purple-400",
+      border: "border-purple-400/40",
+      glow: "shadow-[0_24px_70px_-30px_rgba(168,85,247,0.85)]",
+      hoverGlow: "hover:shadow-[0_22px_60px_-28px_rgba(168,85,247,0.7)]",
+      line: "via-purple-400/70",
+      fade: "text-purple-400/[0.07]",
+      counter: "text-purple-300",
+      arrow: "group-hover:border-purple-400/50 group-hover:bg-purple-500/15 group-hover:text-purple-100",
+    },
+    {
+      node: "text-fuchsia-200",
+      ring: "from-fuchsia-400/70 to-fuchsia-500/0",
+      dot: "bg-fuchsia-400",
+      border: "border-fuchsia-400/40",
+      glow: "shadow-[0_24px_70px_-30px_rgba(232,121,249,0.85)]",
+      hoverGlow: "hover:shadow-[0_22px_60px_-28px_rgba(232,121,249,0.7)]",
+      line: "via-fuchsia-400/70",
+      fade: "text-fuchsia-400/[0.07]",
+      counter: "text-fuchsia-300",
+      arrow: "group-hover:border-fuchsia-400/50 group-hover:bg-fuchsia-500/15 group-hover:text-fuchsia-100",
+    },
+    {
+      node: "text-cyan-200",
+      ring: "from-cyan-400/70 to-cyan-500/0",
+      dot: "bg-cyan-400",
+      border: "border-cyan-400/40",
+      glow: "shadow-[0_24px_70px_-30px_rgba(34,211,238,0.85)]",
+      hoverGlow: "hover:shadow-[0_22px_60px_-28px_rgba(34,211,238,0.65)]",
+      line: "via-cyan-400/70",
+      fade: "text-cyan-400/[0.07]",
+      counter: "text-cyan-300",
+      arrow: "group-hover:border-cyan-400/50 group-hover:bg-cyan-500/15 group-hover:text-cyan-100",
+    },
+  ];
+
+  const centers = ["16.667%", "50%", "83.333%"];
+  const fillWidth = inView || reduced ? `${active * 33.333}%` : "0%";
+
+  const badges = [
+    { Icon: CheckCircle2, label: "No endless DMs", tint: "text-cyan-300", glow: "shadow-[0_0_14px_-2px_rgba(34,211,238,0.7)]" },
+    { Icon: Lock, label: "Secure & private", tint: "text-purple-300", glow: "shadow-[0_0_14px_-2px_rgba(168,85,247,0.7)]" },
+    { Icon: Zap, label: "Get things done", tint: "text-fuchsia-300", glow: "shadow-[0_0_14px_-2px_rgba(232,121,249,0.7)]" },
+  ];
+
   return (
-    <section id="how" className="py-28 border-t border-white/5">
-      <div className="max-w-2xl">
-        <h2 className="text-[11px] font-medium text-zinc-500 uppercase tracking-[0.14em]">
-          How it works
-        </h2>
-        <p className="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-          Three steps. No introductions. No back-and-forth.
-        </p>
+    <section id="how" className="relative py-28 border-t border-white/5">
+      <style>{`
+        @keyframes hiw-pulse { 0%,100%{ transform: scale(1); opacity:.45 } 50%{ transform: scale(1.16); opacity:.12 } }
+        @keyframes hiw-pulse-strong { 0%,100%{ transform: scale(1); opacity:.7 } 50%{ transform: scale(1.28); opacity:.16 } }
+        @keyframes hiw-comet { 0%{ transform: translateX(-100%); opacity:0 } 12%{ opacity:1 } 86%{ opacity:1 } 100%{ transform: translateX(0); opacity:0 } }
+        @keyframes hiw-float { 0%,100%{ transform: translateY(0); opacity:.18 } 50%{ transform: translateY(-12px); opacity:.5 } }
+        .hiw-pulse { animation: hiw-pulse 3.2s ease-in-out infinite; }
+        .hiw-pulse-strong { animation: hiw-pulse-strong 2.1s ease-in-out infinite; }
+        .hiw-comet { animation: hiw-comet 4.6s linear infinite; }
+        .hiw-float { animation: hiw-float var(--d,8s) ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .hiw-pulse, .hiw-pulse-strong, .hiw-comet, .hiw-float { animation: none !important; }
+        }
+      `}</style>
+
+      {/* Contained background — soft glow + faint dotted texture + drifting particles */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute left-[20%] top-2 h-44 w-[55%] rounded-full bg-purple-500/[0.08] blur-[90px]" />
+        <div className="absolute right-[16%] bottom-4 h-40 w-[44%] rounded-full bg-cyan-500/[0.06] blur-[90px]" />
+        <svg className="absolute inset-0 h-full w-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="hiw-dots" x="0" y="0" width="26" height="26" patternUnits="userSpaceOnUse">
+              <circle cx="1.3" cy="1.3" r="1.3" fill="white" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hiw-dots)" />
+        </svg>
+        {HIW_PARTICLES.map((p, i) => (
+          <span
+            key={i}
+            className="hiw-float absolute rounded-full bg-white/60"
+            style={{ left: p.left, top: p.top, width: p.size, height: p.size, animationDelay: p.delay, "--d": p.dur } as React.CSSProperties}
+          />
+        ))}
       </div>
 
-      <div ref={ref} className="relative mt-14">
-        {/* Progression line — animates left→right as the section enters (desktop) */}
-        <div className="pointer-events-none absolute left-0 right-0 top-[26px] hidden sm:block" aria-hidden>
-          <div className="h-px w-full bg-white/8" />
-          <div
-            className="absolute inset-y-0 left-0 h-px bg-gradient-to-r from-indigo-400/60 via-purple-400/60 to-teal-400/60 transition-[width] ease-out"
-            style={{ width: inView || reduced ? "100%" : "0%", transitionDuration: "1400ms" }}
-          />
+      <div className="relative">
+        {/* Heading */}
+        <div className="max-w-2xl">
+          <h2 className="text-[11px] font-medium text-zinc-500 uppercase tracking-[0.14em]">
+            How it works
+          </h2>
+          <p className="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight text-white">
+            Three steps. No introductions. No back-and-forth.
+          </p>
         </div>
 
-        <ol className="grid gap-8 sm:grid-cols-3 sm:gap-6">
-          {steps.map((s, i) => (
-            <li
-              key={s.title}
-              className="relative transition-all duration-700 ease-out"
-              style={{
-                transitionDelay: reduced ? "0ms" : `${i * 130}ms`,
-                opacity: inView || reduced ? 1 : 0,
-                transform: inView || reduced ? "translateY(0)" : "translateY(16px)",
-              }}
+        {/* Glowing step timeline */}
+        <div
+          ref={ref}
+          className="relative mt-14 transition-all duration-700 ease-out"
+          style={{
+            opacity: inView || reduced ? 1 : 0,
+            transform: inView || reduced ? "translateY(0)" : "translateY(16px)",
+          }}
+        >
+          {/* "STEP X OF 3" pill — slides above the active node */}
+          <div className="relative h-9">
+            <div
+              className="absolute bottom-0 flex -translate-x-1/2 flex-col items-center transition-[left] ease-out"
+              style={{ left: centers[active], transitionDuration: reduced ? "0ms" : "480ms" }}
             >
-              {/* Numbered node sitting on the progression line */}
-              <div className="relative z-10 flex items-center gap-3 sm:block">
-                <div className="relative inline-flex">
-                  <span
-                    aria-hidden
-                    className={`absolute -inset-1.5 rounded-full bg-gradient-to-br ${s.ring} blur-md opacity-70`}
-                  />
-                  <span className="relative flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/12 bg-zinc-950 text-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-                    {s.icon}
-                    <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ${s.dot} ring-2 ring-zinc-950`} />
-                  </span>
-                </div>
-                <span className="font-mono text-[11px] text-zinc-600 sm:hidden">Step 0{i + 1}</span>
-              </div>
+              <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-white/15 bg-white/[0.06] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-white shadow-[0_0_22px_-6px_rgba(168,85,247,0.85)] backdrop-blur-sm">
+                <span className={`h-1.5 w-1.5 rounded-full ${accents[active].dot}`} />
+                Step {active + 1} of 3
+              </span>
+              <span className="mt-1 h-3 w-px bg-gradient-to-b from-white/40 to-transparent" aria-hidden />
+            </div>
+          </div>
 
-              {/* Card body */}
-              <div className="group mt-5 rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.045] to-white/[0.01] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_18px_50px_-26px_rgba(99,102,241,0.6)]">
-                <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" aria-hidden />
-                <span className="hidden font-mono text-[11px] text-zinc-600 sm:inline">0{i + 1} / 03</span>
-                <h3 className="mt-3 text-base font-medium text-white">{s.title}</h3>
-                <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{s.text}</p>
+          {/* Nodes + connecting line */}
+          <div className="relative mt-2 grid grid-cols-3">
+            {/* line layer (behind nodes) */}
+            <div className="absolute inset-x-0 top-1/2 z-0" aria-hidden>
+              <div className="absolute left-[16.667%] right-[16.667%] h-px -translate-y-1/2 bg-white/10" />
+              <div
+                className="absolute left-[16.667%] h-px -translate-y-1/2 bg-gradient-to-r from-purple-400/70 via-fuchsia-400/70 to-cyan-400/70 transition-[width] ease-out"
+                style={{ width: fillWidth, transitionDuration: reduced ? "0ms" : "1200ms" }}
+              />
+              {/* traveling light particles, clipped to the track */}
+              <div className="absolute left-[16.667%] right-[16.667%] top-0 h-3 -translate-y-1/2 overflow-hidden">
+                {[0, 1, 2].map((c) => (
+                  <span key={c} className="hiw-comet absolute inset-x-0 top-1/2 block" style={{ animationDelay: `${c * 1.5}s` }}>
+                    <span className="absolute right-0 top-0 h-1 w-1 -translate-y-1/2 rounded-full bg-cyan-200 shadow-[0_0_8px_2px_rgba(34,211,238,0.6)]" />
+                  </span>
+                ))}
               </div>
-            </li>
+            </div>
+
+            {/* nodes */}
+            {steps.map((s, i) => {
+              const a = accents[i];
+              const isActive = active === i;
+              return (
+                <div key={s.title} className="relative z-10 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setActive(i)}
+                    aria-pressed={isActive}
+                    aria-label={`Step ${i + 1}: ${s.title}`}
+                    className="group relative inline-flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+                  >
+                    <span
+                      aria-hidden
+                      className={`absolute -inset-2 rounded-full bg-gradient-to-br ${a.ring} blur-md ${reduced ? "opacity-50" : isActive ? "hiw-pulse-strong" : "hiw-pulse"}`}
+                    />
+                    <span
+                      className={`relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full border bg-zinc-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all duration-300 ${isActive ? `${a.border} ${a.node} scale-105` : "border-white/12 text-zinc-300 group-hover:border-white/25 group-hover:text-white"}`}
+                    >
+                      <s.Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ${a.dot} ring-2 ring-zinc-950 transition-opacity ${isActive ? "opacity-100" : "opacity-60"}`} />
+                    </span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Glassmorphism cards */}
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {steps.map((s, i) => {
+            const a = accents[i];
+            const isActive = active === i;
+            return (
+              <div
+                key={s.title}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isActive}
+                onClick={() => setActive(i)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setActive(i);
+                  }
+                }}
+                className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-gradient-to-b from-white/[0.05] to-white/[0.015] p-6 backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 ${isActive ? `${a.border} ${a.glow}` : `border-white/10 ${a.hoverGlow} hover:border-white/20`}`}
+                style={{
+                  transitionDelay: reduced ? "0ms" : `${i * 110}ms`,
+                  opacity: inView || reduced ? 1 : 0,
+                  transform: inView || reduced ? "translateY(0)" : "translateY(16px)",
+                }}
+              >
+                {/* large faded icon, top-right */}
+                <s.Icon aria-hidden className={`pointer-events-none absolute -right-2 -top-2 h-20 w-20 ${a.fade} transition-transform duration-500 group-hover:scale-110`} />
+
+                {/* step counter pill */}
+                <span className={`inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[10px] ${a.counter}`}>
+                  0{i + 1} / 03
+                </span>
+
+                <h3 className="mt-4 text-base font-medium text-white">{s.title}</h3>
+                <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{s.text}</p>
+
+                <div className="mt-6 flex items-center justify-between">
+                  <span className={`text-[11px] font-medium uppercase tracking-[0.14em] transition-colors ${isActive ? a.counter : "text-zinc-600"}`}>
+                    {isActive ? "Active" : "Tap to focus"}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`More about ${s.title}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActive(i);
+                      toast.success(s.detail);
+                    }}
+                    className={`flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-300 transition-all duration-300 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${a.arrow}`}
+                  >
+                    <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </button>
+                </div>
+
+                {/* thin glowing bottom accent line */}
+                <div
+                  className={`absolute bottom-0 left-6 right-6 h-px bg-gradient-to-r from-transparent ${a.line} to-transparent transition-opacity duration-300 ${isActive ? "opacity-100" : "opacity-40 group-hover:opacity-80"}`}
+                  aria-hidden
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Feature badges */}
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+          {badges.map((b) => (
+            <span
+              key={b.label}
+              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-medium text-zinc-300 backdrop-blur-sm transition-colors hover:border-white/20 hover:text-white"
+            >
+              <span className={`flex h-5 w-5 items-center justify-center rounded-full bg-white/[0.05] ${b.tint} ${b.glow}`}>
+                <b.Icon className="h-3 w-3" />
+              </span>
+              {b.label}
+            </span>
           ))}
-        </ol>
+        </div>
       </div>
     </section>
   );

@@ -6,42 +6,17 @@ import CreatePostForm from "@/components/feed/CreatePostForm";
 import PostCard from "@/components/feed/PostCard";
 import PostSkeleton from "@/components/feed/PostSkeleton";
 import TrendingPostCard from "@/components/feed/TrendingPostCard";
+import LiveSessionsCard from "@/components/feed/LiveSessionsCard";
+import CreateSessionDialog from "@/components/feed/CreateSessionDialog";
 import UserCard from "@/components/shared/UserCard";
 import EmptyState from "@/components/shared/EmptyState";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Loader2, Globe, Users, Sparkles, TrendingUp, Radio, Clock3, PlayCircle, CalendarClock, MessageSquareDashed } from "lucide-react";
+import { Loader2, Globe, Users, Sparkles, TrendingUp, CalendarClock, MessageSquareDashed } from "lucide-react";
 import { toast } from "sonner";
 import type { PostWithAuthor, Profile } from "@/types";
 
 const PAGE_SIZE = 20;
-
-const LIVE_SESSIONS = [
-  {
-    name: "Sara Kim",
-    topic: "React state bug",
-    status: "Live",
-    detail: "12 min left",
-    minsLeft: 12,
-    cta: "Join session",
-  },
-  {
-    name: "Marko V.",
-    topic: "PR architecture review",
-    status: "Live",
-    detail: "8 min left",
-    minsLeft: 8,
-    cta: "Join session",
-  },
-  {
-    name: "Nina Petrova",
-    topic: "TypeScript narrowing",
-    status: "Starting",
-    detail: "11 min left",
-    minsLeft: 11,
-    cta: "View",
-  },
-];
 
 const ACTIVE_SESSION_SIDEBAR = [
   { title: "React perf debugging", timeLeft: "11 min left", progress: 72 },
@@ -225,63 +200,7 @@ export default function FeedPage() {
     <AppLayout>
       <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
         <div className="space-y-7 min-w-0">
-          <section className="feed-card relative overflow-hidden p-6 sm:p-7 border-primary/15 shadow-[0_12px_40px_-20px_hsl(var(--primary)/0.45)]">
-            <div className="absolute -top-20 -right-20 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.22)_0%,transparent_70%)] pointer-events-none" aria-hidden />
-            <div className="absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(34,197,94,0.18)_0%,transparent_72%)] pointer-events-none" aria-hidden />
-
-            <div className="flex items-center justify-between gap-3 relative">
-              <div className="flex items-center gap-2">
-                <Radio className="h-4 w-4 text-emerald-500" />
-                <h2 className="text-base sm:text-[1.05rem] font-semibold tracking-tight">Live sessions happening now</h2>
-              </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-70 animate-ping" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                Live right now
-              </span>
-            </div>
-
-            <div className="mt-5 h-px w-full bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
-
-            <div className="mt-5 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 relative">
-              {LIVE_SESSIONS.map((s) => {
-                const progress = Math.max(18, Math.min(96, Math.round(((30 - s.minsLeft) / 30) * 100)));
-                return (
-                  <div key={`${s.name}-${s.topic}`} className="group rounded-xl border border-border/70 bg-background/55 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_10px_28px_-18px_hsl(var(--primary)/0.45)]">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate">{s.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{s.topic}</p>
-                      </div>
-                      <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                        <span className="relative flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60 animate-ping" />
-                          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                        </span>
-                        {s.status}
-                      </span>
-                    </div>
-
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
-                        <Clock3 className="h-3 w-3" />
-                        {s.detail}
-                      </span>
-                      <Button size="sm" variant="outline" className="h-7 rounded-lg px-2.5 text-[11px] group-hover:border-primary/40 group-hover:text-primary" onClick={() => toast.success(`Opening ${s.topic}`)}>
-                        {s.cta}
-                      </Button>
-                    </div>
-
-                    <div className="mt-3 h-1.5 rounded-full bg-secondary/65 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-violet-500/80 to-emerald-500/80 transition-all duration-300" style={{ width: `${progress}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+          <LiveSessionsCard />
 
           <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/25 to-transparent" aria-hidden />
 
@@ -416,10 +335,7 @@ export default function FeedPage() {
                 </div>
               ))}
             </div>
-            <Button className="w-full mt-4 rounded-xl h-9 gap-2" onClick={() => toast.success("Start a session") }>
-              <PlayCircle className="h-4 w-4" />
-              Start a session
-            </Button>
+            <CreateSessionDialog />
           </div>
 
           {suggested.length > 0 && (

@@ -8,6 +8,7 @@ import PostCard from "@/components/feed/PostCard";
 import PostSkeleton from "@/components/feed/PostSkeleton";
 import UserCard from "@/components/shared/UserCard";
 import UserSkeleton from "@/components/explore/UserSkeleton";
+import ActiveUserDialog, { type ActiveUserEntry } from "@/components/explore/ActiveUserDialog";
 import EmptyState from "@/components/shared/EmptyState";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ export default function ExplorePage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("trending");
   const [hasRealData, setHasRealData] = useState(true);
+  const [activeEntry, setActiveEntry] = useState<ActiveUserEntry | null>(null);
 
   const engagementPrompt = useMemo(
     () => ENGAGEMENT_PROMPTS[Math.floor(Math.random() * ENGAGEMENT_PROMPTS.length)],
@@ -270,11 +272,7 @@ export default function ExplorePage() {
                   <div
                     key={profile.user_id}
                     className="flex items-center gap-3 group cursor-pointer rounded-lg hover:bg-accent/30 p-2 -mx-2 transition-colors"
-                    onClick={() =>
-                      profile.user_id.startsWith("demo-")
-                        ? toast("This is a sample user", { icon: "👋" })
-                        : navigate(`/u/${profile.username}`)
-                    }
+                    onClick={() => setActiveEntry({ profile, postCount, totalLikes })}
                   >
                     <Avatar className="h-9 w-9 ring-2 ring-border group-hover:ring-primary/20 transition-all">
                       <AvatarImage src={profile.avatar_url || undefined} />
@@ -356,6 +354,8 @@ export default function ExplorePage() {
           )}
         </aside>
       </div>
+
+      <ActiveUserDialog entry={activeEntry} onOpenChange={(open) => !open && setActiveEntry(null)} />
     </AppLayout>
   );
 }
