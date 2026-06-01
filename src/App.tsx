@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
+import ScrollToTop from "@/components/ScrollToTop";
 import { lazy, Suspense, useState, type ReactNode } from "react";
 
 // Lazy-load pages for better initial load
@@ -82,6 +83,7 @@ const App = () => (
     <TooltipProvider>
       <Sonner position="top-right" richColors closeButton />
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <AppRoutes />
         </AuthProvider>

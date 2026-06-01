@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowRight, Code2, GitPullRequest, MessageSquare, Search, Calendar, Coffee, Circle, CheckCircle2, Loader2, X, Minus, Zap } from "lucide-react";
+import { ArrowRight, Code2, GitPullRequest, MessageSquare, Search, Calendar, Coffee, Circle, CheckCircle2, Loader2, X, Minus, Zap, ShieldCheck, Clock } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
 // ─── Animated dot-grid background ────────────────────────────────────────────
@@ -141,6 +141,65 @@ function Reveal({ children, className = "" }: { children: React.ReactNode; class
   );
 }
 
+// ── Entrance + count-up helpers (same IntersectionObserver style as <Reveal>) ──
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduced(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return reduced;
+}
+
+function useInView<T extends HTMLElement>(rootMargin = "0px 0px -12% 0px") {
+  const ref = useRef<T>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin, threshold: 0.15 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [rootMargin]);
+  return [ref, inView] as const;
+}
+
+// Animates 0 → target with easeOutCubic once `active`. Honors reduced motion by
+// jumping straight to the final value. rAF-driven, transform-free.
+function useCountUp(target: number, active: boolean, reduced: boolean, duration = 1500) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    if (reduced) {
+      setValue(target);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(target * eased);
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else setValue(target);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, active, reduced, duration]);
+  return value;
+}
+
 export default function AuthPage() {
   return (
     <div className="min-h-screen bg-[#0b0c10] text-zinc-100 selection:bg-zinc-300 selection:text-zinc-900 overflow-x-hidden">
@@ -152,7 +211,6 @@ export default function AuthPage() {
         <Reveal><ProblemSolution /></Reveal>
         <Reveal><UseCases /></Reveal>
         <Reveal><Differentiation /></Reveal>
-        <Reveal><MetricsStrip /></Reveal>
         <Reveal><DemoSession /></Reveal>
         <Reveal><AuthSection /></Reveal>
         <Reveal><FounderSection /></Reveal>
@@ -185,6 +243,117 @@ function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+// ─── Magnetic primary CTA ─────────────────────────────────────────────────────
+// The one "wow" hero detail: the primary call-to-action gently follows the
+// cursor (magnetic pull) with a glow that tracks the pointer, plus a soft
+// ambient breathe so it feels alive before any interaction. Transform/opacity
+// only, driven by requestAnimationFrame — no layout thrashing. Falls back to the
+// plain (existing) button on touch devices and when prefers-reduced-motion is on.
+function MagneticCTA() {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const linkRef = useRef<HTMLAnchorElement>(null);
+  const spotRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const link = linkRef.current;
+    const spot = spotRef.current;
+    if (!wrap || !link || !spot) return;
+
+    const noMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+    // Static fallback (keeps the existing hover styles) for touch / reduced motion.
+    if (noMotion || !finePointer) return;
+
+    const RADIUS = 90; // px around the button where the magnet engages
+    const PULL = 0.32; // how strongly it follows the cursor
+    const MAX = 8; // max travel in px
+
+    let raf = 0;
+    let curX = 0, curY = 0; // current offset
+    let tgtX = 0, tgtY = 0; // target offset
+    let engaged = false;
+
+    const tick = () => {
+      curX += (tgtX - curX) * 0.18;
+      curY += (tgtY - curY) * 0.18;
+      wrap.style.transform = `translate(${curX.toFixed(2)}px, ${curY.toFixed(2)}px)`;
+      if (engaged || Math.abs(tgtX - curX) > 0.1 || Math.abs(tgtY - curY) > 0.1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        wrap.style.transform = "";
+        raf = 0;
+      }
+    };
+    const ensureTick = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      const r = link.getBoundingClientRect();
+      const dx = e.clientX - (r.left + r.width / 2);
+      const dy = e.clientY - (r.top + r.height / 2);
+      const within = Math.hypot(dx, dy) < r.width / 2 + RADIUS;
+      spot.style.setProperty("--mx", `${e.clientX - r.left}px`);
+      spot.style.setProperty("--my", `${e.clientY - r.top}px`);
+      if (within) {
+        engaged = true;
+        spot.style.opacity = "1";
+        tgtX = Math.max(-MAX, Math.min(MAX, dx * PULL));
+        tgtY = Math.max(-MAX, Math.min(MAX, dy * PULL));
+      } else {
+        engaged = false;
+        spot.style.opacity = "";
+        tgtX = 0;
+        tgtY = 0;
+      }
+      ensureTick();
+    };
+    const onLeave = () => {
+      engaged = false;
+      spot.style.opacity = "";
+      tgtX = 0;
+      tgtY = 0;
+      ensureTick();
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerleave", onLeave);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <div ref={wrapRef} className="relative inline-flex will-change-transform">
+      <style>{`
+        @keyframes cta-breathe { 0%,100%{opacity:.3;transform:scale(0.97)} 50%{opacity:.5;transform:scale(1.03)} }
+        .cta-aura { background: radial-gradient(closest-side, rgba(129,140,248,0.45), rgba(139,92,246,0.16) 62%, transparent 80%); filter: blur(15px); animation: cta-breathe 4.5s ease-in-out infinite; }
+        .cta-spot { background: radial-gradient(110px circle at var(--mx,50%) var(--my,50%), rgba(165,180,252,0.6), rgba(139,92,246,0.22) 46%, transparent 72%); filter: blur(11px); }
+        @media (prefers-reduced-motion: reduce){ .cta-aura{ animation:none; opacity:.32 } }
+      `}</style>
+      {/* Ambient "alive" glow — always on, very subtle */}
+      <span aria-hidden className="cta-aura pointer-events-none absolute -inset-4 rounded-2xl" />
+      {/* Cursor-tracking spotlight — fades in near the button */}
+      <span
+        ref={spotRef}
+        aria-hidden
+        className="cta-spot pointer-events-none absolute -inset-3 rounded-xl opacity-0 transition-opacity duration-300"
+      />
+      <a
+        ref={linkRef}
+        href="#auth"
+        className="relative inline-flex items-center gap-2 h-11 px-5 rounded-md bg-white text-zinc-900 text-sm font-medium shadow-sm hover:bg-zinc-100 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(255,255,255,0.16)] active:translate-y-0 transition-all duration-200"
+      >
+        Find developers
+        <ArrowRight className="h-4 w-4" />
+      </a>
+    </div>
   );
 }
 
@@ -286,13 +455,7 @@ function Hero() {
 
         {/* CTAs */}
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <a
-            href="#auth"
-            className="inline-flex items-center gap-2 h-11 px-5 rounded-md bg-white text-zinc-900 text-sm font-medium shadow-sm hover:bg-zinc-100 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(255,255,255,0.16)] active:translate-y-0 transition-all duration-200"
-          >
-            Find developers
-            <ArrowRight className="h-4 w-4" />
-          </a>
+          <MagneticCTA />
           <button
             onClick={openDemo}
             disabled={demoOpen}
@@ -606,11 +769,33 @@ function GlobeVisual() {
 }
 
 function HowItWorks() {
+  const reduced = usePrefersReducedMotion();
+  const [ref, inView] = useInView<HTMLDivElement>();
+
   const steps = [
-    { icon: <Search className="h-4 w-4" />, title: "Find a developer", text: "Browse people building things you care about." },
-    { icon: <Calendar className="h-4 w-4" />, title: "Pick a time", text: "Open their profile, choose a slot that works." },
-    { icon: <Coffee className="h-4 w-4" />, title: "Talk, solve, ship", text: "30 focused minutes on a real problem." },
+    {
+      icon: <Search className="h-4 w-4" />,
+      title: "Find a developer",
+      text: "Browse people building things you care about.",
+      ring: "from-indigo-400/70 to-indigo-500/0",
+      dot: "bg-indigo-400",
+    },
+    {
+      icon: <Calendar className="h-4 w-4" />,
+      title: "Pick a time",
+      text: "Open their profile, choose a slot that works.",
+      ring: "from-purple-400/70 to-purple-500/0",
+      dot: "bg-purple-400",
+    },
+    {
+      icon: <Coffee className="h-4 w-4" />,
+      title: "Talk, solve, ship",
+      text: "30 focused minutes on a real problem.",
+      ring: "from-teal-400/70 to-teal-500/0",
+      dot: "bg-teal-400",
+    },
   ];
+
   return (
     <section id="how" className="py-28 border-t border-white/5">
       <div className="max-w-2xl">
@@ -621,44 +806,89 @@ function HowItWorks() {
           Three steps. No introductions. No back-and-forth.
         </p>
       </div>
-      <div className="mt-12 grid sm:grid-cols-3 gap-6">
-        {steps.map((s, i) => (
+
+      <div ref={ref} className="relative mt-14">
+        {/* Progression line — animates left→right as the section enters (desktop) */}
+        <div className="pointer-events-none absolute left-0 right-0 top-[26px] hidden sm:block" aria-hidden>
+          <div className="h-px w-full bg-white/8" />
           <div
-            key={i}
-            className="rounded-xl border border-white/10 bg-white/[0.02] p-6 hover:bg-white/[0.04] hover:border-white/15 hover:-translate-y-0.5 transition-all duration-200"
-          >
-            <div className="flex items-center gap-2 text-zinc-400">
-              <span className="font-mono text-xs text-zinc-500">0{i + 1}</span>
-              <span className="text-zinc-700">/</span>
-              <span className="text-zinc-400">{s.icon}</span>
-            </div>
-            <h3 className="mt-5 text-base font-medium text-white">{s.title}</h3>
-            <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{s.text}</p>
-          </div>
-        ))}
+            className="absolute inset-y-0 left-0 h-px bg-gradient-to-r from-indigo-400/60 via-purple-400/60 to-teal-400/60 transition-[width] ease-out"
+            style={{ width: inView || reduced ? "100%" : "0%", transitionDuration: "1400ms" }}
+          />
+        </div>
+
+        <ol className="grid gap-8 sm:grid-cols-3 sm:gap-6">
+          {steps.map((s, i) => (
+            <li
+              key={s.title}
+              className="relative transition-all duration-700 ease-out"
+              style={{
+                transitionDelay: reduced ? "0ms" : `${i * 130}ms`,
+                opacity: inView || reduced ? 1 : 0,
+                transform: inView || reduced ? "translateY(0)" : "translateY(16px)",
+              }}
+            >
+              {/* Numbered node sitting on the progression line */}
+              <div className="relative z-10 flex items-center gap-3 sm:block">
+                <div className="relative inline-flex">
+                  <span
+                    aria-hidden
+                    className={`absolute -inset-1.5 rounded-full bg-gradient-to-br ${s.ring} blur-md opacity-70`}
+                  />
+                  <span className="relative flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/12 bg-zinc-950 text-zinc-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                    {s.icon}
+                    <span className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ${s.dot} ring-2 ring-zinc-950`} />
+                  </span>
+                </div>
+                <span className="font-mono text-[11px] text-zinc-600 sm:hidden">Step 0{i + 1}</span>
+              </div>
+
+              {/* Card body */}
+              <div className="group mt-5 rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.045] to-white/[0.01] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/20 hover:shadow-[0_18px_50px_-26px_rgba(99,102,241,0.6)]">
+                <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" aria-hidden />
+                <span className="hidden font-mono text-[11px] text-zinc-600 sm:inline">0{i + 1} / 03</span>
+                <h3 className="mt-3 text-base font-medium text-white">{s.title}</h3>
+                <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{s.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );
 }
 
 function UseCases() {
+  const reduced = usePrefersReducedMotion();
+  const [ref, inView] = useInView<HTMLDivElement>();
+
   const cases = [
     {
       icon: <GitPullRequest className="h-4 w-4" />,
       title: "Quick code reviews",
       text: "Get a second pair of eyes on a PR before you merge.",
+      tint: "text-indigo-300",
+      glow: "group-hover:shadow-[0_18px_50px_-26px_rgba(99,102,241,0.7)]",
+      hairline: "via-indigo-400/40",
     },
     {
       icon: <MessageSquare className="h-4 w-4" />,
       title: "Career advice",
       text: "Talk through job decisions with someone further along.",
+      tint: "text-purple-300",
+      glow: "group-hover:shadow-[0_18px_50px_-26px_rgba(168,85,247,0.7)]",
+      hairline: "via-purple-400/40",
     },
     {
       icon: <Code2 className="h-4 w-4" />,
       title: "Pair programming",
       text: "Unstick a hard problem in 30 minutes instead of 3 hours.",
+      tint: "text-teal-300",
+      glow: "group-hover:shadow-[0_18px_50px_-26px_rgba(45,212,191,0.7)]",
+      hairline: "via-teal-400/40",
     },
   ];
+
   return (
     <section className="py-28 border-t border-white/5">
       <div className="max-w-2xl">
@@ -670,17 +900,27 @@ function UseCases() {
         </p>
       </div>
 
-      <div className="mt-12 grid sm:grid-cols-3 gap-6">
+      <div ref={ref} className="mt-12 grid sm:grid-cols-3 gap-6">
         {cases.map((c, i) => (
           <div
-            key={i}
-            className="rounded-xl border border-white/10 bg-white/[0.02] p-6 hover:bg-white/[0.04] hover:border-white/15 hover:-translate-y-0.5 transition-all duration-200"
+            key={c.title}
+            className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.045] to-white/[0.01] p-6 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-white/20 ${c.glow}`}
+            style={{
+              transitionDelay: reduced ? "0ms" : `${i * 110}ms`,
+              opacity: inView || reduced ? 1 : 0,
+              transform: inView || reduced ? "translateY(0)" : "translateY(16px)",
+            }}
           >
-            <div className="h-8 w-8 rounded-md border border-white/10 bg-white/5 flex items-center justify-center text-zinc-300">
+            <div className={`absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent ${c.hairline} to-transparent`} aria-hidden />
+            <div className={`h-9 w-9 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center ${c.tint} transition-transform duration-300 group-hover:scale-110`}>
               {c.icon}
             </div>
             <h3 className="mt-5 text-sm font-medium text-white">{c.title}</h3>
             <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{c.text}</p>
+            <span className={`mt-4 inline-flex items-center gap-1 text-[11px] font-medium ${c.tint} opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0`}>
+              Book this
+              <ArrowRight className="h-3 w-3" />
+            </span>
           </div>
         ))}
       </div>
@@ -696,28 +936,52 @@ function UseCases() {
 
           <div className="relative grid gap-6 sm:grid-cols-[1fr,auto] sm:items-center">
             <div>
-              <h3 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-zinc-300">
+                <ShieldCheck className="h-3 w-3 text-emerald-300" />
+                No-show protected · Free while early
+              </span>
+              <h3 className="mt-4 text-xl sm:text-2xl font-semibold tracking-tight text-white">
                 Instant developer sessions
               </h3>
               <p className="mt-2 text-sm sm:text-base text-zinc-200/85 leading-relaxed max-w-[52ch]">
                 Found someone useful? Book 30 minutes and solve it immediately.
               </p>
+              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs text-zinc-300/90">
+                {[
+                  { icon: <Clock className="h-3.5 w-3.5 text-indigo-300" />, label: "30-min focused slots" },
+                  { icon: <Calendar className="h-3.5 w-3.5 text-purple-300" />, label: "Pick a time instantly" },
+                  { icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />, label: "Confirmed in one tap" },
+                ].map((f) => (
+                  <span key={f.label} className="inline-flex items-center gap-1.5">
+                    {f.icon}
+                    {f.label}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            <div className="relative rounded-xl border border-white/15 bg-zinc-950/55 backdrop-blur-sm p-4 sm:w-[280px]">
-              <div className="text-sm font-medium text-zinc-100">Sara Kim — React debugging</div>
-              <div className="mt-2 flex items-center justify-between text-xs text-zinc-300">
+            <div className="relative rounded-xl border border-white/15 bg-zinc-950/55 backdrop-blur-sm p-4 sm:w-[280px] transition-transform duration-300 group-hover:-translate-y-0.5">
+              <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-300/50 to-transparent" aria-hidden />
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-[11px] font-semibold text-white">SK</span>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-zinc-100 truncate">Sara Kim</div>
+                  <div className="text-[11px] text-zinc-400 truncate">React debugging</div>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between rounded-lg border border-white/8 bg-white/[0.03] px-3 py-2 text-xs text-zinc-300">
                 <span className="font-mono">10:00 • Available</span>
                 <span className="inline-flex items-center gap-1.5 text-emerald-300">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
                     <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
                   </span>
+                  Live
                 </span>
               </div>
               <button
                 type="button"
-                className="mt-4 inline-flex items-center gap-2 h-9 px-3.5 rounded-md bg-white text-zinc-900 text-xs font-semibold transition-all duration-200 group-hover:bg-zinc-100 group-hover:-translate-y-0.5"
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 h-9 px-3.5 rounded-md bg-white text-zinc-900 text-xs font-semibold transition-all duration-200 group-hover:bg-zinc-100 group-hover:-translate-y-0.5"
               >
                 Book session
                 <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
@@ -831,27 +1095,70 @@ function ProblemSolution() {
   );
 }
 
-// ─── Differentiation ─────────────────────────────────────────────────────────
+// ─── Animated stat (count-up on entry) ───────────────────────────────────────
+function StatNumber({
+  value,
+  suffix,
+  label,
+  active,
+  reduced,
+}: {
+  value: number;
+  suffix: string;
+  label: string;
+  active: boolean;
+  reduced: boolean;
+}) {
+  const n = useCountUp(value, active, reduced);
+  return (
+    <div className="group bg-[#0b0c10] px-6 py-8 flex flex-col items-center gap-1.5 transition-colors hover:bg-white/[0.02]">
+      <span className="text-3xl sm:text-4xl font-semibold tracking-tight text-white tabular-nums">
+        {Math.round(n)}
+        <span className="bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">{suffix}</span>
+      </span>
+      <span className="text-xs text-zinc-500 text-center">{label}</span>
+    </div>
+  );
+}
+
+// ─── Differentiation + product data (one cohesive storytelling section) ───────
 function Differentiation() {
+  const reduced = usePrefersReducedMotion();
+  const [cardsRef, cardsInView] = useInView<HTMLDivElement>();
+  const [statsRef, statsInView] = useInView<HTMLDivElement>();
+
   const items = [
     {
       title: "No endless messaging",
       desc: "Skip the thread. Book a slot and show up.",
-      accent: "from-rose-500/10 to-transparent",
-      border: "border-rose-500/15",
+      accent: "from-rose-500/12 to-transparent",
+      border: "border-rose-500/20",
+      hairline: "via-rose-400/40",
+      tint: "text-rose-300",
     },
     {
       title: "No profile hunting",
       desc: "Find someone by skill. Book immediately. Done.",
-      accent: "from-amber-500/10 to-transparent",
-      border: "border-amber-500/15",
+      accent: "from-amber-500/12 to-transparent",
+      border: "border-amber-500/20",
+      hairline: "via-amber-400/40",
+      tint: "text-amber-300",
     },
     {
       title: "No wasted time",
       desc: "30 minutes. One problem. Real outcome.",
-      accent: "from-emerald-500/10 to-transparent",
-      border: "border-emerald-500/15",
+      accent: "from-emerald-500/12 to-transparent",
+      border: "border-emerald-500/20",
+      hairline: "via-emerald-400/40",
+      tint: "text-emerald-300",
     },
+  ];
+
+  const metrics = [
+    { value: 30, suffix: "+", label: "sessions simulated" },
+    { value: 6, suffix: "", label: "developer profiles" },
+    { value: 3, suffix: "", label: "booking states" },
+    { value: 100, suffix: "%", label: "responsive UI" },
   ];
 
   return (
@@ -864,47 +1171,48 @@ function Differentiation() {
           Designed to get out of your way.
         </p>
       </div>
-      <div className="grid sm:grid-cols-3 gap-5">
-        {items.map((item) => (
+
+      <div ref={cardsRef} className="grid sm:grid-cols-3 gap-5">
+        {items.map((item, i) => (
           <div
             key={item.title}
-            className={`relative rounded-xl border ${item.border} bg-gradient-to-b ${item.accent} bg-white/[0.02] p-6 overflow-hidden group hover:-translate-y-1 transition-all duration-200`}
+            className={`group relative overflow-hidden rounded-2xl border ${item.border} bg-gradient-to-b ${item.accent} p-6 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_50px_-28px_rgba(255,255,255,0.25)]`}
+            style={{
+              transitionDelay: reduced ? "0ms" : `${i * 110}ms`,
+              opacity: cardsInView || reduced ? 1 : 0,
+              transform: cardsInView || reduced ? "translateY(0)" : "translateY(16px)",
+            }}
           >
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-            <h3 className="text-base font-semibold text-white">{item.title}</h3>
+            <div className={`absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent ${item.hairline} to-transparent`} aria-hidden />
+            <div className={`flex h-7 w-7 items-center justify-center rounded-full border ${item.border} ${item.tint}`}>
+              <Minus className="h-3.5 w-3.5" />
+            </div>
+            <h3 className="mt-4 text-base font-semibold text-white">{item.title}</h3>
             <p className="mt-2.5 text-sm text-zinc-400 leading-relaxed">{item.desc}</p>
           </div>
         ))}
       </div>
-    </section>
-  );
-}
 
-// ─── Metrics strip ────────────────────────────────────────────────────────────
-function MetricsStrip() {
-  const metrics = [
-    { value: "30+", label: "sessions simulated" },
-    { value: "6", label: "developer profiles" },
-    { value: "3", label: "booking states" },
-    { value: "100%", label: "responsive UI" },
-  ];
-  return (
-    <section className="py-16 border-t border-white/5">
-      <div className="text-center mb-10">
-        <span className="text-[11px] font-medium text-zinc-600 uppercase tracking-[0.14em]">
-          Internal product data
-        </span>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/5 rounded-xl overflow-hidden border border-white/5">
-        {metrics.map((m) => (
-          <div
-            key={m.label}
-            className="bg-[#0b0c10] px-6 py-8 flex flex-col items-center gap-1.5 hover:bg-white/[0.02] transition-colors"
-          >
-            <span className="text-3xl font-semibold tracking-tight text-white tabular-nums">{m.value}</span>
-            <span className="text-xs text-zinc-500 text-center">{m.label}</span>
-          </div>
-        ))}
+      {/* Product data band — same section, animated count-up on entry */}
+      <div ref={statsRef} className="mt-14">
+        <div className="mb-6 flex items-center gap-3">
+          <span className="text-[11px] font-medium text-zinc-600 uppercase tracking-[0.14em]">
+            Internal product data
+          </span>
+          <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" aria-hidden />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/8">
+          {metrics.map((m) => (
+            <StatNumber
+              key={m.label}
+              value={m.value}
+              suffix={m.suffix}
+              label={m.label}
+              active={statsInView}
+              reduced={reduced}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
