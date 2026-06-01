@@ -330,7 +330,15 @@ export default function ExplorePage() {
               </div>
               <div className="space-y-3">
                 {trendingPosts.slice(0, 3).map((post, i) => (
-                  <div key={post.id} className="flex items-start gap-3 group cursor-pointer rounded-lg hover:bg-accent/30 p-2 -mx-2 transition-colors">
+                  <div
+                    key={post.id}
+                    className="flex items-start gap-3 group cursor-pointer rounded-lg hover:bg-accent/30 p-2 -mx-2 transition-colors"
+                    onClick={() =>
+                      !post.profiles?.username || post.profiles.user_id?.startsWith("demo-")
+                        ? toast("This is a sample post", { icon: "📝" })
+                        : navigate(`/u/${post.profiles.username}`)
+                    }
+                  >
                     <span className="text-lg font-bold text-muted-foreground/50 mt-0.5 tabular-nums">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">

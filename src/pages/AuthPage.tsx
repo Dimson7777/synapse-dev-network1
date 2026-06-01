@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowRight, Code2, GitPullRequest, MessageSquare, Search, Calendar, Coffee, Circle, CheckCircle2, Loader2, X, Minus, Zap, ShieldCheck, Clock, Users, BarChart3, ThumbsUp } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Code2, Braces, Activity, MessageSquare, Search, Calendar, Coffee, Circle, CheckCircle2, Loader2, X, XCircle, Zap, ShieldCheck, Clock, Users, BarChart3, ThumbsUp } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
 // ─── Animated dot-grid background ────────────────────────────────────────────
@@ -208,9 +208,8 @@ export default function AuthPage() {
       <main className="max-w-6xl mx-auto px-6 lg:px-8 relative">
         <Hero />
         <Reveal><HowItWorks /></Reveal>
-        <Reveal><ProblemSolution /></Reveal>
+        <ProblemSolution />
         <Reveal><UseCases /></Reveal>
-        <Reveal><Differentiation /></Reveal>
         <Reveal><DemoSession /></Reveal>
         <Reveal><AuthSection /></Reveal>
         <Reveal><FounderSection /></Reveal>
@@ -918,134 +917,258 @@ function HowItWorks() {
   );
 }
 
+// ─── Not just networking / developer sessions ────────────────────────────────
+// Premium glass cards + a built-in booking panel. Contained glow/wave/particles
+// blend into the page background (no new full-bleed bg). Transform/opacity only,
+// in-view reveal, with a calm prefers-reduced-motion fallback. The "Book session"
+// button is presentational here (the landing page has no booking handler yet).
+const UC_PARTICLES = [
+  { left: "8%", top: "24%", size: "3px", delay: "0s", dur: "7s" },
+  { left: "22%", top: "70%", size: "2px", delay: "1.1s", dur: "9s" },
+  { left: "47%", top: "16%", size: "2px", delay: "0.6s", dur: "8s" },
+  { left: "63%", top: "62%", size: "3px", delay: "1.8s", dur: "10s" },
+  { left: "81%", top: "30%", size: "2px", delay: "0.3s", dur: "7.5s" },
+  { left: "91%", top: "72%", size: "2px", delay: "2.2s", dur: "9.5s" },
+] as const;
+
 function UseCases() {
   const reduced = usePrefersReducedMotion();
   const [ref, inView] = useInView<HTMLDivElement>();
+  const [panelRef, panelInView] = useInView<HTMLDivElement>();
 
   const cases = [
     {
-      icon: <GitPullRequest className="h-4 w-4" />,
+      Icon: Code2,
       title: "Quick code reviews",
       text: "Get a second pair of eyes on a PR before you merge.",
+      PillIcon: Clock,
+      pill: "~15 min avg response",
       tint: "text-indigo-300",
-      glow: "group-hover:shadow-[0_18px_50px_-26px_rgba(99,102,241,0.7)]",
-      hairline: "via-indigo-400/40",
+      badge: "border-indigo-400/30 bg-indigo-500/10",
+      hover: "hover:border-indigo-400/40 hover:shadow-[0_22px_60px_-28px_rgba(99,102,241,0.8)]",
+      hairline: "via-indigo-400/50",
+      arrow: "group-hover:border-indigo-400/40 group-hover:bg-indigo-500/15",
     },
     {
-      icon: <MessageSquare className="h-4 w-4" />,
+      Icon: MessageSquare,
       title: "Career advice",
       text: "Talk through job decisions with someone further along.",
+      PillIcon: Users,
+      pill: "1:1 conversations",
       tint: "text-purple-300",
-      glow: "group-hover:shadow-[0_18px_50px_-26px_rgba(168,85,247,0.7)]",
-      hairline: "via-purple-400/40",
+      badge: "border-purple-400/30 bg-purple-500/10",
+      hover: "hover:border-purple-400/40 hover:shadow-[0_22px_60px_-28px_rgba(168,85,247,0.8)]",
+      hairline: "via-purple-400/50",
+      arrow: "group-hover:border-purple-400/40 group-hover:bg-purple-500/15",
     },
     {
-      icon: <Code2 className="h-4 w-4" />,
+      Icon: Braces,
       title: "Pair programming",
       text: "Unstick a hard problem in 30 minutes instead of 3 hours.",
+      PillIcon: Activity,
+      pill: "Live collaboration",
       tint: "text-teal-300",
-      glow: "group-hover:shadow-[0_18px_50px_-26px_rgba(45,212,191,0.7)]",
-      hairline: "via-teal-400/40",
+      badge: "border-teal-400/30 bg-teal-500/10",
+      hover: "hover:border-teal-400/40 hover:shadow-[0_22px_60px_-28px_rgba(45,212,191,0.8)]",
+      hairline: "via-teal-400/50",
+      arrow: "group-hover:border-teal-400/40 group-hover:bg-teal-500/15",
     },
   ];
 
-  return (
-    <section className="py-28 border-t border-white/5">
-      <div className="max-w-2xl">
-        <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-          Not just networking. Real outcomes.
-        </h2>
-        <p className="mt-4 text-sm text-zinc-400 leading-relaxed">
-          Connect, then solve something — instantly.
-        </p>
-      </div>
+  const benefits = [
+    { Icon: Clock, label: "30-min", sub: "focused slots", tint: "text-indigo-300" },
+    { Icon: Calendar, label: "Pick a time", sub: "instantly", tint: "text-purple-300" },
+    { Icon: ShieldCheck, label: "Confirmed", sub: "in one tap", tint: "text-emerald-300" },
+  ];
 
-      <div ref={ref} className="mt-12 grid sm:grid-cols-3 gap-6">
-        {cases.map((c, i) => (
-          <div
-            key={c.title}
-            className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.045] to-white/[0.01] p-6 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-white/20 ${c.glow}`}
-            style={{
-              transitionDelay: reduced ? "0ms" : `${i * 110}ms`,
-              opacity: inView || reduced ? 1 : 0,
-              transform: inView || reduced ? "translateY(0)" : "translateY(16px)",
-            }}
-          >
-            <div className={`absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent ${c.hairline} to-transparent`} aria-hidden />
-            <div className={`h-9 w-9 rounded-lg border border-white/10 bg-white/5 flex items-center justify-center ${c.tint} transition-transform duration-300 group-hover:scale-110`}>
-              {c.icon}
-            </div>
-            <h3 className="mt-5 text-sm font-medium text-white">{c.title}</h3>
-            <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{c.text}</p>
-            <span className={`mt-4 inline-flex items-center gap-1 text-[11px] font-medium ${c.tint} opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0`}>
-              Book this
-              <ArrowRight className="h-3 w-3" />
-            </span>
-          </div>
+  const slots = [
+    { t: "9:00", h: "h-5", on: false },
+    { t: "10:00", h: "h-9", on: true },
+    { t: "11:00", h: "h-6", on: false },
+    { t: "12:00", h: "h-7", on: false },
+  ];
+
+  return (
+    <section className="relative py-28 border-t border-white/5">
+      <style>{`
+        @keyframes uc-wave-drift { 0%,100%{transform:translateX(-50%)} 50%{transform:translateX(calc(-50% + 26px))} }
+        @keyframes uc-float { 0%,100%{transform:translateY(0);opacity:.25} 50%{transform:translateY(-14px);opacity:.6} }
+        .uc-wave { animation: uc-wave-drift 14s ease-in-out infinite; }
+        .uc-particle { animation: uc-float var(--d,8s) ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .uc-wave, .uc-particle, .uc-anim { animation: none !important; }
+        }
+      `}</style>
+
+      {/* Contained background — soft glow, wave line and faint particles (blends into page bg) */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute left-[18%] top-4 h-44 w-[55%] rounded-full bg-indigo-500/10 blur-[90px]" />
+        <div className="absolute right-[14%] bottom-6 h-40 w-[42%] rounded-full bg-purple-500/[0.08] blur-[90px]" />
+        <svg className="uc-wave absolute left-1/2 top-[44%] w-[150%] -translate-x-1/2 opacity-[0.16]" viewBox="0 0 1200 120" preserveAspectRatio="none" fill="none">
+          <defs>
+            <linearGradient id="uc-wave-grad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="rgba(99,102,241,0)" />
+              <stop offset="30%" stopColor="rgba(99,102,241,0.8)" />
+              <stop offset="60%" stopColor="rgba(45,212,191,0.8)" />
+              <stop offset="100%" stopColor="rgba(168,85,247,0)" />
+            </linearGradient>
+          </defs>
+          <path d="M0,60 C150,12 300,108 450,60 S750,12 900,60 S1200,108 1350,60" stroke="url(#uc-wave-grad)" strokeWidth="1.5" />
+        </svg>
+        {UC_PARTICLES.map((p, i) => (
+          <span
+            key={i}
+            className="uc-particle absolute rounded-full bg-white/70"
+            style={{ left: p.left, top: p.top, width: p.size, height: p.size, animationDelay: p.delay, "--d": p.dur } as React.CSSProperties}
+          />
         ))}
       </div>
 
-      <div className="mt-10">
-        <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-[0.14em]">
-          Built-in booking
-        </span>
+      <div className="relative">
+        {/* Heading block */}
+        <div className="max-w-2xl">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-400/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-indigo-200">
+            <Zap className="h-3 w-3" />
+            Solve faster, together
+          </span>
+          <h2 className="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-[1.12]">
+            Not just networking.
+            <br />
+            <span className="bg-gradient-to-r from-purple-300 to-indigo-300 bg-clip-text text-transparent">Real outcomes.</span>
+          </h2>
+          <p className="mt-4 text-sm text-zinc-400 leading-relaxed">
+            Connect, then solve something — <span className="font-medium text-indigo-300">instantly</span>.
+          </p>
+        </div>
 
-        <div className="group mt-3 relative overflow-hidden rounded-2xl border border-indigo-400/25 bg-gradient-to-br from-indigo-500/[0.12] via-purple-500/[0.1] to-teal-500/[0.08] p-6 sm:p-7 transition-all duration-300 hover:border-indigo-300/45 hover:shadow-[0_0_40px_rgba(99,102,241,0.22)]">
-          <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-indigo-400/15 blur-3xl pointer-events-none" aria-hidden />
-          <div className="absolute -left-8 -bottom-10 h-32 w-32 rounded-full bg-teal-400/10 blur-3xl pointer-events-none" aria-hidden />
-
-          <div className="relative grid gap-6 sm:grid-cols-[1fr,auto] sm:items-center">
-            <div>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-zinc-300">
-                <ShieldCheck className="h-3 w-3 text-emerald-300" />
-                No-show protected · Free while early
-              </span>
-              <h3 className="mt-4 text-xl sm:text-2xl font-semibold tracking-tight text-white">
-                Instant developer sessions
-              </h3>
-              <p className="mt-2 text-sm sm:text-base text-zinc-200/85 leading-relaxed max-w-[52ch]">
-                Found someone useful? Book 30 minutes and solve it immediately.
-              </p>
-              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs text-zinc-300/90">
-                {[
-                  { icon: <Clock className="h-3.5 w-3.5 text-indigo-300" />, label: "30-min focused slots" },
-                  { icon: <Calendar className="h-3.5 w-3.5 text-purple-300" />, label: "Pick a time instantly" },
-                  { icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />, label: "Confirmed in one tap" },
-                ].map((f) => (
-                  <span key={f.label} className="inline-flex items-center gap-1.5">
-                    {f.icon}
-                    {f.label}
+        {/* Three feature cards (equal height) */}
+        <div ref={ref} className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {cases.map((c, i) => (
+            <div
+              key={c.title}
+              className="flex transition-all duration-700 ease-out"
+              style={{
+                transitionDelay: reduced ? "0ms" : `${i * 110}ms`,
+                opacity: inView || reduced ? 1 : 0,
+                transform: inView || reduced ? "translateY(0)" : "translateY(16px)",
+              }}
+            >
+              <div className={`group relative flex w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.015] p-6 backdrop-blur-sm transition-all duration-300 ease-out hover:-translate-y-1.5 ${c.hover}`}>
+                <div className={`absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent ${c.hairline} to-transparent`} aria-hidden />
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${c.badge} ${c.tint} transition-transform duration-300 group-hover:scale-110`}>
+                  <c.Icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-5 text-base font-semibold text-white">{c.title}</h3>
+                <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{c.text}</p>
+                <div className="mt-auto flex items-center justify-between pt-6">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-medium text-zinc-400">
+                    <c.PillIcon className={`h-3 w-3 ${c.tint}`} />
+                    {c.pill}
                   </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative rounded-xl border border-white/15 bg-zinc-950/55 backdrop-blur-sm p-4 sm:w-[280px] transition-transform duration-300 group-hover:-translate-y-0.5">
-              <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-300/50 to-transparent" aria-hidden />
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-[11px] font-semibold text-white">SK</span>
-                <div className="min-w-0">
-                  <div className="text-sm font-medium text-zinc-100 truncate">Sara Kim</div>
-                  <div className="text-[11px] text-zinc-400 truncate">React debugging</div>
+                  <span aria-hidden className={`flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] ${c.tint} transition-all duration-300 group-hover:-translate-y-0.5 ${c.arrow}`}>
+                    <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </span>
                 </div>
               </div>
-              <div className="mt-3 flex items-center justify-between rounded-lg border border-white/8 bg-white/[0.03] px-3 py-2 text-xs text-zinc-300">
-                <span className="font-mono">10:00 • Available</span>
-                <span className="inline-flex items-center gap-1.5 text-emerald-300">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                  </span>
-                  Live
+            </div>
+          ))}
+        </div>
+
+        {/* Built-in booking panel */}
+        <div
+          ref={panelRef}
+          className="mt-10 transition-all duration-700 ease-out"
+          style={{
+            opacity: panelInView || reduced ? 1 : 0,
+            transform: panelInView || reduced ? "translateY(0)" : "translateY(20px)",
+          }}
+        >
+          <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-[0.14em]">
+            Built-in booking
+          </span>
+
+          <div className="group mt-3 relative overflow-hidden rounded-2xl border border-indigo-400/25 bg-gradient-to-br from-indigo-500/[0.12] via-purple-500/[0.1] to-teal-500/[0.08] p-6 sm:p-7 backdrop-blur-sm transition-all duration-300 hover:border-indigo-300/45 hover:shadow-[0_0_50px_-12px_rgba(99,102,241,0.4)]">
+            <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-300/50 to-transparent" aria-hidden />
+            <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-indigo-400/15 blur-3xl pointer-events-none" aria-hidden />
+            <div className="absolute -left-8 -bottom-10 h-32 w-32 rounded-full bg-teal-400/10 blur-3xl pointer-events-none" aria-hidden />
+
+            <div className="relative grid gap-8 lg:grid-cols-[1fr,auto] lg:items-center">
+              {/* LEFT */}
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-zinc-300">
+                  <ShieldCheck className="h-3 w-3 text-emerald-300" />
+                  No-show protected · Free while early
                 </span>
+                <h3 className="mt-4 text-xl sm:text-2xl font-semibold tracking-tight text-white">
+                  Instant developer sessions
+                </h3>
+                <p className="mt-2 text-sm sm:text-base text-zinc-200/85 leading-relaxed max-w-[52ch]">
+                  Found someone useful? Book 30 minutes and solve it immediately.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-x-8 gap-y-4">
+                  {benefits.map((b) => (
+                    <div key={b.label} className="flex items-center gap-2.5">
+                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] ${b.tint}`}>
+                        <b.Icon className="h-4 w-4" />
+                      </span>
+                      <span className="leading-tight">
+                        <span className="block text-sm font-medium text-white">{b.label}</span>
+                        <span className="block text-[11px] text-zinc-400">{b.sub}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <button
-                type="button"
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 h-9 px-3.5 rounded-md bg-white text-zinc-900 text-xs font-semibold transition-all duration-200 group-hover:bg-zinc-100 group-hover:-translate-y-0.5"
-              >
-                Book session
-                <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-              </button>
+
+              {/* RIGHT — compact booking card */}
+              <div className="relative w-full rounded-xl border border-white/15 bg-zinc-950/55 backdrop-blur-sm p-4 lg:w-[300px] transition-transform duration-300 group-hover:-translate-y-0.5">
+                <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-300/50 to-transparent" aria-hidden />
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-[11px] font-semibold text-white">SK</span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-zinc-100 truncate">Sara Kim</div>
+                    <div className="text-[11px] text-zinc-400 truncate">React debugging</div>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between rounded-lg border border-white/8 bg-white/[0.03] px-3 py-2 text-xs text-zinc-300">
+                  <span className="inline-flex items-center gap-1.5 font-mono">
+                    <Clock className="h-3.5 w-3.5 text-indigo-300" />
+                    10:00 · Available
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-emerald-300">
+                    <span className="relative flex h-2 w-2">
+                      <span className="uc-anim absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                    </span>
+                    Live
+                  </span>
+                </div>
+
+                {/* mini availability timeline */}
+                <div className="mt-3 grid grid-cols-4 gap-1.5">
+                  {slots.map((s) => (
+                    <div key={s.t} className="flex flex-col items-center gap-1">
+                      <span className="flex h-9 w-full items-end justify-center rounded-md bg-white/[0.04] p-0.5">
+                        <span className={`w-full rounded ${s.h} ${s.on ? "bg-gradient-to-t from-indigo-500 to-purple-400 shadow-[0_0_12px_rgba(129,140,248,0.65)]" : "bg-white/10"}`} />
+                      </span>
+                      <span className={`text-[9px] ${s.on ? "font-medium text-indigo-300" : "text-zinc-500"}`}>{s.t}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 h-9 px-3.5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_-8px_rgba(139,92,246,0.65)]"
+                >
+                  Book session
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                </button>
+                <p className="mt-2 flex items-center justify-center gap-1 text-[10px] text-zinc-500">
+                  <Zap className="h-2.5 w-2.5 text-indigo-300" />
+                  Takes 30 seconds
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1101,177 +1224,144 @@ function AuthSection() {
 }
 
 // ─── Problem / Solution ───────────────────────────────────────────────────────
+const PROBLEM_POINTS = [
+  "Long threads that go nowhere",
+  "DMs that feel transactional",
+  "Networking events for the wrong crowd",
+];
+const SOLUTION_POINTS = [
+  "Direct booking, no back-and-forth",
+  "30-minute focused sessions",
+  "Real developers, real problems solved",
+];
+
+// Premium interactive problem→solution split: a glowing transformation node on a
+// vertical light beam, gradient orbit rings (rose on the left, cyan on the right)
+// and slow particles. Reuses the existing dark/glow language; transform/opacity-
+// only motion with an in-view reveal and a calm prefers-reduced-motion fallback.
 function ProblemSolution() {
+  const reduced = usePrefersReducedMotion();
+  const [ref, inView] = useInView<HTMLDivElement>();
+  const shown = inView || reduced;
+
   return (
-    <section className="py-28 border-t border-white/5">
-      <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-start">
-        {/* Problem */}
-        <div>
-          <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-[0.14em]">
-            The problem
+    <section className="relative py-28 border-t border-white/5 overflow-hidden">
+      <style>{`
+        @keyframes ps-pulse { 0%{transform:scale(.55);opacity:.55} 100%{transform:scale(1.7);opacity:0} }
+        @keyframes ps-orbit { to { transform: rotate(360deg) } }
+        @keyframes ps-breathe { 0%,100%{opacity:.4;transform:scale(.92)} 50%{opacity:.8;transform:scale(1.1)} }
+        .ps-pulse  { transform-box: fill-box; transform-origin: center; animation: ps-pulse 4.5s ease-out infinite; }
+        .ps-pulse2 { animation-delay: 2.25s; }
+        .ps-orbit  { animation-name: ps-orbit; animation-timing-function: linear; animation-iteration-count: infinite; transform-origin: 50% 50%; }
+        .ps-breathe{ animation: ps-breathe 5s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .ps-pulse, .ps-orbit, .ps-breathe { animation: none !important; }
+          .ps-pulse { opacity: .3 !important; }
+        }
+      `}</style>
+
+      {/* Contained ambient glow — blends into the page background */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-[20%] top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-rose-500/[0.06] blur-[90px]" />
+        <div className="absolute right-[20%] top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-cyan-500/[0.07] blur-[90px]" />
+      </div>
+
+      <div ref={ref} className="relative grid items-stretch gap-y-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-0">
+        {/* LEFT — THE PROBLEM */}
+        <div
+          className="lg:pr-14 transition-all duration-700 ease-out"
+          style={{ opacity: shown ? 1 : 0, transform: shown ? "translateX(0)" : "translateX(-28px)" }}
+        >
+          <span className="inline-flex items-center gap-2">
+            <XCircle className="h-4 w-4 text-rose-400" />
+            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-rose-300/80">The problem</span>
           </span>
-          <p className="mt-5 text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug">
-            Developers don't need more networking.
-          </p>
+          <h2 className="mt-5 text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug">
+            Developers don't need more{" "}
+            <span className="bg-gradient-to-r from-rose-400 to-red-500 bg-clip-text text-transparent">networking.</span>
+          </h2>
           <p className="mt-4 text-lg text-zinc-400 leading-relaxed">
             They need fast, focused help on real problems.
           </p>
-          <div className="mt-8 space-y-3">
-            {["Long threads that go nowhere", "DMs that feel transactional", "Networking events for the wrong crowd"].map((item) => (
-              <div key={item} className="flex items-start gap-3 text-sm text-zinc-500">
-                <span className="mt-0.5 h-4 w-4 rounded-full border border-red-500/30 bg-red-500/10 flex items-center justify-center shrink-0">
-                  <Minus className="h-2.5 w-2.5 text-red-400" />
+          <ul className="mt-8 divide-y divide-white/5">
+            {PROBLEM_POINTS.map((item) => (
+              <li key={item} className="group flex items-center gap-3 py-3.5">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-400 transition-all duration-300 group-hover:bg-rose-500/20 group-hover:shadow-[0_0_14px_rgba(244,63,94,0.45)]">
+                  <XCircle className="h-3.5 w-3.5" />
                 </span>
-                {item}
-              </div>
+                <span className="text-sm text-zinc-400 transition-colors duration-300 group-hover:text-zinc-200">{item}</span>
+              </li>
             ))}
+          </ul>
+        </div>
+
+        {/* CENTER — transformation node */}
+        <div
+          className="relative flex items-center justify-center py-6 lg:py-0 transition-all duration-700 ease-out"
+          style={{ transitionDelay: reduced ? "0ms" : "150ms", opacity: shown ? 1 : 0, transform: shown ? "scale(1)" : "scale(0.8)" }}
+        >
+          {/* Vertical light beam — full height on desktop, short connector on mobile */}
+          <div aria-hidden className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-purple-500/40 to-transparent" />
+          <div aria-hidden className="absolute left-1/2 top-0 bottom-0 w-8 -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(168,85,247,0.12),transparent)]" />
+
+          <div className="relative flex h-[180px] w-[180px] items-center justify-center">
+            {/* Orbit rings (rose → purple → cyan gradient + radar pulse) */}
+            <svg viewBox="0 0 180 180" className="absolute inset-0 h-full w-full" aria-hidden>
+              <defs>
+                <linearGradient id="ps-ring-grad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.55" />
+                  <stop offset="50%" stopColor="#a855f7" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.6" />
+                </linearGradient>
+              </defs>
+              <circle cx="90" cy="90" r="42" fill="none" stroke="url(#ps-ring-grad)" strokeWidth="1" opacity="0.55" />
+              <circle cx="90" cy="90" r="66" fill="none" stroke="url(#ps-ring-grad)" strokeWidth="1" opacity="0.3" />
+              <circle className="ps-pulse" cx="90" cy="90" r="42" fill="none" stroke="url(#ps-ring-grad)" strokeWidth="1.4" />
+              <circle className="ps-pulse ps-pulse2" cx="90" cy="90" r="42" fill="none" stroke="url(#ps-ring-grad)" strokeWidth="1.4" />
+            </svg>
+
+            {/* Slow orbiting particles — rose (outer) and cyan (inner, reverse) */}
+            <div className="ps-orbit absolute inset-0" style={{ animationDuration: "16s" }} aria-hidden>
+              <span className="absolute left-1/2 top-[10px] h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-rose-400 shadow-[0_0_8px_2px_rgba(244,63,94,0.6)]" />
+            </div>
+            <div className="ps-orbit absolute inset-[20px]" style={{ animationDuration: "20s", animationDirection: "reverse" }} aria-hidden>
+              <span className="absolute left-1/2 top-0 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.6)]" />
+            </div>
+
+            {/* Node */}
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-purple-400/40 bg-gradient-to-br from-purple-500/30 to-purple-700/20 backdrop-blur-sm shadow-[0_0_30px_-4px_rgba(168,85,247,0.7)]">
+              <span aria-hidden className="ps-breathe absolute -inset-2 rounded-full bg-purple-500/30 blur-xl" />
+              <Zap className="relative h-6 w-6 text-purple-50" />
+            </div>
           </div>
         </div>
 
-        {/* Solution */}
-        <div className="lg:pl-8 lg:border-l lg:border-white/5">
-          <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-[0.14em]">
-            The solution
+        {/* RIGHT — THE SOLUTION */}
+        <div
+          className="lg:pl-14 transition-all duration-700 ease-out"
+          style={{ transitionDelay: reduced ? "0ms" : "100ms", opacity: shown ? 1 : 0, transform: shown ? "translateX(0)" : "translateX(28px)" }}
+        >
+          <span className="inline-flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-emerald-300/80">The solution</span>
           </span>
-          <p className="mt-5 text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug">
-            DevCircle removes noise.
-          </p>
+          <h2 className="mt-5 text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug">
+            DevCircle removes{" "}
+            <span className="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">noise.</span>
+          </h2>
           <p className="mt-4 text-lg text-zinc-400 leading-relaxed">
             You book time, talk directly, solve something, and move on.
           </p>
-          <div className="mt-8 space-y-3">
-            {["Direct booking, no back-and-forth", "30-minute focused sessions", "Real developers, real problems solved"].map((item) => (
-              <div key={item} className="flex items-start gap-3 text-sm text-zinc-400">
-                <span className="mt-0.5 h-4 w-4 rounded-full border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400" />
+          <ul className="mt-8 divide-y divide-white/5">
+            {SOLUTION_POINTS.map((item) => (
+              <li key={item} className="group flex items-center gap-3 py-3.5">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 transition-all duration-300 group-hover:bg-emerald-500/20 group-hover:shadow-[0_0_14px_rgba(16,185,129,0.45)]">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
                 </span>
-                {item}
-              </div>
+                <span className="text-sm text-zinc-400 transition-colors duration-300 group-hover:text-zinc-200">{item}</span>
+              </li>
             ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── Animated stat (count-up on entry) ───────────────────────────────────────
-function StatNumber({
-  value,
-  suffix,
-  label,
-  active,
-  reduced,
-}: {
-  value: number;
-  suffix: string;
-  label: string;
-  active: boolean;
-  reduced: boolean;
-}) {
-  const n = useCountUp(value, active, reduced);
-  return (
-    <div className="group bg-[#0b0c10] px-6 py-8 flex flex-col items-center gap-1.5 transition-colors hover:bg-white/[0.02]">
-      <span className="text-3xl sm:text-4xl font-semibold tracking-tight text-white tabular-nums">
-        {Math.round(n)}
-        <span className="bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">{suffix}</span>
-      </span>
-      <span className="text-xs text-zinc-500 text-center">{label}</span>
-    </div>
-  );
-}
-
-// ─── Differentiation + product data (one cohesive storytelling section) ───────
-function Differentiation() {
-  const reduced = usePrefersReducedMotion();
-  const [cardsRef, cardsInView] = useInView<HTMLDivElement>();
-  const [statsRef, statsInView] = useInView<HTMLDivElement>();
-
-  const items = [
-    {
-      title: "No endless messaging",
-      desc: "Skip the thread. Book a slot and show up.",
-      accent: "from-rose-500/12 to-transparent",
-      border: "border-rose-500/20",
-      hairline: "via-rose-400/40",
-      tint: "text-rose-300",
-    },
-    {
-      title: "No profile hunting",
-      desc: "Find someone by skill. Book immediately. Done.",
-      accent: "from-amber-500/12 to-transparent",
-      border: "border-amber-500/20",
-      hairline: "via-amber-400/40",
-      tint: "text-amber-300",
-    },
-    {
-      title: "No wasted time",
-      desc: "30 minutes. One problem. Real outcome.",
-      accent: "from-emerald-500/12 to-transparent",
-      border: "border-emerald-500/20",
-      hairline: "via-emerald-400/40",
-      tint: "text-emerald-300",
-    },
-  ];
-
-  const metrics = [
-    { value: 30, suffix: "+", label: "sessions simulated" },
-    { value: 6, suffix: "", label: "developer profiles" },
-    { value: 3, suffix: "", label: "booking states" },
-    { value: 100, suffix: "%", label: "responsive UI" },
-  ];
-
-  return (
-    <section className="py-28 border-t border-white/5">
-      <div className="max-w-xl mb-12">
-        <h2 className="text-[11px] font-medium text-zinc-500 uppercase tracking-[0.14em]">
-          Why it's different
-        </h2>
-        <p className="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-          Designed to get out of your way.
-        </p>
-      </div>
-
-      <div ref={cardsRef} className="grid sm:grid-cols-3 gap-5">
-        {items.map((item, i) => (
-          <div
-            key={item.title}
-            className={`group relative overflow-hidden rounded-2xl border ${item.border} bg-gradient-to-b ${item.accent} p-6 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_50px_-28px_rgba(255,255,255,0.25)]`}
-            style={{
-              transitionDelay: reduced ? "0ms" : `${i * 110}ms`,
-              opacity: cardsInView || reduced ? 1 : 0,
-              transform: cardsInView || reduced ? "translateY(0)" : "translateY(16px)",
-            }}
-          >
-            <div className={`absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent ${item.hairline} to-transparent`} aria-hidden />
-            <div className={`flex h-7 w-7 items-center justify-center rounded-full border ${item.border} ${item.tint}`}>
-              <Minus className="h-3.5 w-3.5" />
-            </div>
-            <h3 className="mt-4 text-base font-semibold text-white">{item.title}</h3>
-            <p className="mt-2.5 text-sm text-zinc-400 leading-relaxed">{item.desc}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Product data band — same section, animated count-up on entry */}
-      <div ref={statsRef} className="mt-14">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="text-[11px] font-medium text-zinc-600 uppercase tracking-[0.14em]">
-            Internal product data
-          </span>
-          <span className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" aria-hidden />
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/8">
-          {metrics.map((m) => (
-            <StatNumber
-              key={m.label}
-              value={m.value}
-              suffix={m.suffix}
-              label={m.label}
-              active={statsInView}
-              reduced={reduced}
-            />
-          ))}
+          </ul>
         </div>
       </div>
     </section>

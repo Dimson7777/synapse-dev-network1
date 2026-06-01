@@ -2,14 +2,12 @@ import { useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
 
-function getSystemTheme(): Theme {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
 function getStoredTheme(): Theme {
   const stored = localStorage.getItem("devcircle-theme");
   if (stored === "dark" || stored === "light") return stored;
-  return getSystemTheme();
+  // Default to the dark premium theme so auth → onboarding → dashboard stay
+  // consistent (matches the boot-time class applied in main.tsx).
+  return "dark";
 }
 
 export function useTheme() {
