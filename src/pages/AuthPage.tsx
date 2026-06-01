@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowRight, Code2, GitPullRequest, MessageSquare, Search, Calendar, Coffee, Circle, CheckCircle2, Loader2, X, Minus, Zap, ShieldCheck, Clock } from "lucide-react";
+import { ArrowRight, Code2, GitPullRequest, MessageSquare, Search, Calendar, Coffee, Circle, CheckCircle2, Loader2, X, Minus, Zap, ShieldCheck, Clock, Users, BarChart3, ThumbsUp } from "lucide-react";
 import logoImg from "@/assets/logo.png";
 
 // ─── Animated dot-grid background ────────────────────────────────────────────
@@ -411,359 +411,419 @@ function Hero() {
   useEffect(() => () => demoTimers.current.forEach(clearTimeout), []);
 
   return (
-    <section className="relative pt-20 pb-24 lg:pt-28 lg:pb-32 grid lg:grid-cols-[1.05fr,1fr] gap-12 lg:gap-16 items-center">
-      <div className="hidden lg:block pointer-events-none absolute top-[57%] left-[50%] w-[22%] h-px bg-gradient-to-r from-indigo-400/0 via-indigo-400/30 to-emerald-300/0" aria-hidden>
-        <span
-          className="absolute top-1/2 -translate-y-1/2 h-1.5 w-6 rounded-full bg-gradient-to-r from-indigo-300 to-emerald-300 blur-[0.5px]"
-          style={{ animation: "signal-travel 5.6s ease-in-out infinite" }}
-        />
-      </div>
-      <div>
-        {/* Badge */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-[11px] text-indigo-300 font-medium mb-6 tracking-wide">
-          <Zap className="h-2.5 w-2.5" />
-          Global developer sessions
+    <section className="relative pt-20 pb-20 lg:pt-28 lg:pb-28">
+      {/* Faint grid backdrop behind the whole hero (fades toward the globe side) */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px)",
+          backgroundSize: "46px 46px",
+          WebkitMaskImage: "radial-gradient(ellipse 75% 70% at 72% 38%, #000 25%, transparent 75%)",
+          maskImage: "radial-gradient(ellipse 75% 70% at 72% 38%, #000 25%, transparent 75%)",
+        }}
+      />
+      <div className="relative grid lg:grid-cols-[1.05fr,1fr] gap-12 lg:gap-16 items-center">
+        <div className="hidden lg:block pointer-events-none absolute top-[57%] left-[50%] w-[22%] h-px bg-gradient-to-r from-indigo-400/0 via-indigo-400/30 to-emerald-300/0" aria-hidden>
+          <span
+            className="absolute top-1/2 -translate-y-1/2 h-1.5 w-6 rounded-full bg-gradient-to-r from-indigo-300 to-emerald-300 blur-[0.5px]"
+            style={{ animation: "signal-travel 5.6s ease-in-out infinite" }}
+          />
         </div>
-
-        {/* Headline */}
-        <h1 className="text-[2.5rem] sm:text-5xl lg:text-[3.4rem] font-semibold tracking-tight leading-[1.06] text-white">
-          Real developers.
-          <br />
-          <span className="bg-gradient-to-r from-indigo-200 via-purple-200 to-teal-200 bg-clip-text text-transparent">
-            Real problems. Solved live.
-          </span>
-        </h1>
-
-        {/* Subheadline */}
-        <p className="mt-6 text-base sm:text-lg text-zinc-400 leading-relaxed max-w-[42ch]">
-          Book focused 30-minute sessions with developers who can help you unblock faster — without endless networking or cold messages.
-        </p>
-
-        {/* Live activity strip */}
-        <div className="mt-7 flex flex-wrap gap-2">
-          {[
-            { color: "bg-emerald-500", text: `${online} developers online`,      delay: "0ms" },
-            { color: "bg-indigo-400",  text: "3 sessions happening now",          delay: "600ms" },
-            { color: "bg-purple-400",  text: "React review booked 2 min ago",     delay: "1200ms" },
-          ].map((pill) => (
-            <span key={pill.text} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/8 bg-white/[0.03] text-[11px] text-zinc-400">
-              <span className={`h-1.5 w-1.5 rounded-full ${pill.color} animate-pulse`} style={{ animationDelay: pill.delay }} />
-              {pill.text}
-            </span>
-          ))}
-        </div>
-
-        {/* CTAs */}
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <MagneticCTA />
-          <button
-            onClick={openDemo}
-            disabled={demoOpen}
-            className="inline-flex items-center gap-2 h-11 px-5 rounded-md border border-indigo-500/40 bg-indigo-500/10 text-sm font-medium text-indigo-200 hover:bg-indigo-500/[0.2] hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(99,102,241,0.24)] active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-default"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
-            </span>
-            Start demo session
-          </button>
-        </div>
-
-        <div className="mt-4 h-5 flex items-center">
-          <div
-            style={{
-              opacity: activityVisible ? 1 : 0,
-              transform: activityVisible ? "translateY(0)" : "translateY(-4px)",
-              transition: "opacity 240ms ease, transform 240ms ease",
-            }}
-            className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-white/8 bg-white/[0.03] text-[11px] text-zinc-400"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            {HERO_ACTIVITY[activityIdx]}
+        <div>
+          {/* Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-[11px] text-indigo-300 font-medium mb-6 tracking-wide">
+            <Zap className="h-2.5 w-2.5" />
+            Global developer sessions
           </div>
-        </div>
 
-        {/* Inline mini demo panel */}
-        {demoOpen && (
-          <div
-            style={{ animation: "fadeSlideUp 0.3s ease forwards" }}
-            className="mt-5 rounded-xl border border-white/10 bg-zinc-950/85 backdrop-blur-sm overflow-hidden shadow-[0_0_0_1px_rgba(99,102,241,0.12),0_10px_40px_rgba(20,20,40,0.52)]"
-          >
-            <div className="px-4 py-2.5 border-b border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span className="text-[11px] text-zinc-500 font-mono">Session #3021 · React debugging</span>
-              </div>
-              <button onClick={closeDemo} className="text-zinc-600 hover:text-zinc-400 transition-colors p-0.5">
-                <X className="h-3.5 w-3.5" />
-              </button>
+          {/* Headline */}
+          <h1 className="text-[2.5rem] sm:text-5xl lg:text-[3.4rem] font-semibold tracking-tight leading-[1.06] text-white">
+            Real developers.
+            <br />
+            <span className="bg-gradient-to-r from-indigo-200 via-purple-200 to-teal-200 bg-clip-text text-transparent">
+              Real problems. Solved live.
+            </span>
+          </h1>
+
+          {/* Subheadline */}
+          <p className="mt-6 text-base sm:text-lg text-zinc-400 leading-relaxed max-w-[42ch]">
+            Book focused 30-minute sessions with developers who can help you unblock faster — without endless networking or cold messages.
+          </p>
+
+          {/* Live activity strip */}
+          <div className="mt-7 flex flex-wrap gap-2">
+            {[
+              { color: "bg-emerald-500", text: `${online} developers online`,      delay: "0ms" },
+              { color: "bg-indigo-400",  text: "3 sessions happening now",          delay: "600ms" },
+              { color: "bg-purple-400",  text: "React review booked 2 min ago",     delay: "1200ms" },
+            ].map((pill) => (
+              <span key={pill.text} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/8 bg-white/[0.03] text-[11px] text-zinc-400">
+                <span className={`h-1.5 w-1.5 rounded-full ${pill.color} animate-pulse`} style={{ animationDelay: pill.delay }} />
+                {pill.text}
+              </span>
+            ))}
+          </div>
+
+          {/* CTAs */}
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <MagneticCTA />
+            <button
+              onClick={openDemo}
+              disabled={demoOpen}
+              className="inline-flex items-center gap-2 h-11 px-5 rounded-md border border-indigo-500/40 bg-indigo-500/10 text-sm font-medium text-indigo-200 hover:bg-indigo-500/[0.2] hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(99,102,241,0.24)] active:translate-y-0 transition-all duration-200 disabled:opacity-60 disabled:cursor-default"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
+              </span>
+              Start demo session
+            </button>
+          </div>
+
+          <div className="mt-4 h-5 flex items-center">
+            <div
+              style={{
+                opacity: activityVisible ? 1 : 0,
+                transform: activityVisible ? "translateY(0)" : "translateY(-4px)",
+                transition: "opacity 240ms ease, transform 240ms ease",
+              }}
+              className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-white/8 bg-white/[0.03] text-[11px] text-zinc-400"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              {HERO_ACTIVITY[activityIdx]}
             </div>
-            <div className="p-4 sm:p-5 space-y-3 min-h-[72px]">
-              {MINI.slice(0, demoStep).map((s, i) => (
-                <div key={i} style={{ animation: "fadeSlideUp 0.25s ease forwards" }}>
-                  {s.role === "user" && (
-                    <div className="flex justify-end">
-                      <span className="max-w-[86%] px-3 py-2 rounded-xl rounded-br-sm bg-white/[0.08] border border-white/6 text-xs text-zinc-200 leading-relaxed">{s.text}</span>
-                    </div>
-                  )}
-                  {s.role === "typing" && (
-                    <div className="flex items-end gap-2 pl-1">
-                      <span className="h-5 w-5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[8px] font-bold text-white shrink-0">MK</span>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl rounded-bl-sm bg-zinc-800/82 border border-white/5">
-                        {[0, 1, 2].map((n) => (
-                          <span key={n} className="dot-blink h-1.5 w-1.5 rounded-full bg-zinc-500" style={{ animationDelay: `${n * 220}ms` }} />
-                        ))}
-                      </span>
-                    </div>
-                  )}
-                  {s.role === "dev" && (
-                    <div className="flex items-end gap-2">
-                      <span className="h-5 w-5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[8px] font-bold text-white shrink-0">MK</span>
-                      <span className="max-w-[86%] px-3 py-2 rounded-xl rounded-bl-sm bg-zinc-800/84 border border-white/5 text-xs text-zinc-200 leading-relaxed">{s.text}</span>
-                    </div>
-                  )}
-                  {s.role === "ok" && (
-                    <div className="flex justify-center pt-0.5">
-                      <span style={{ animation: "success-pulse 1.8s ease-in-out infinite" }} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] text-[11px] text-emerald-300 font-medium">
-                        <CheckCircle2 className="h-3 w-3" />
-                        {s.text}
-                      </span>
-                    </div>
-                  )}
+          </div>
+
+          {/* Inline mini demo panel */}
+          {demoOpen && (
+            <div
+              style={{ animation: "fadeSlideUp 0.3s ease forwards" }}
+              className="mt-5 rounded-xl border border-white/10 bg-zinc-950/85 backdrop-blur-sm overflow-hidden shadow-[0_0_0_1px_rgba(99,102,241,0.12),0_10px_40px_rgba(20,20,40,0.52)]"
+            >
+              <div className="px-4 py-2.5 border-b border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  <span className="text-[11px] text-zinc-500 font-mono">Session #3021 · React debugging</span>
                 </div>
-              ))}
+                <button onClick={closeDemo} className="text-zinc-600 hover:text-zinc-400 transition-colors p-0.5">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="p-4 sm:p-5 space-y-3 min-h-[72px]">
+                {MINI.slice(0, demoStep).map((s, i) => (
+                  <div key={i} style={{ animation: "fadeSlideUp 0.25s ease forwards" }}>
+                    {s.role === "user" && (
+                      <div className="flex justify-end">
+                        <span className="max-w-[86%] px-3 py-2 rounded-xl rounded-br-sm bg-white/[0.08] border border-white/6 text-xs text-zinc-200 leading-relaxed">{s.text}</span>
+                      </div>
+                    )}
+                    {s.role === "typing" && (
+                      <div className="flex items-end gap-2 pl-1">
+                        <span className="h-5 w-5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[8px] font-bold text-white shrink-0">MK</span>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl rounded-bl-sm bg-zinc-800/82 border border-white/5">
+                          {[0, 1, 2].map((n) => (
+                            <span key={n} className="dot-blink h-1.5 w-1.5 rounded-full bg-zinc-500" style={{ animationDelay: `${n * 220}ms` }} />
+                          ))}
+                        </span>
+                      </div>
+                    )}
+                    {s.role === "dev" && (
+                      <div className="flex items-end gap-2">
+                        <span className="h-5 w-5 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[8px] font-bold text-white shrink-0">MK</span>
+                        <span className="max-w-[86%] px-3 py-2 rounded-xl rounded-bl-sm bg-zinc-800/84 border border-white/5 text-xs text-zinc-200 leading-relaxed">{s.text}</span>
+                      </div>
+                    )}
+                    {s.role === "ok" && (
+                      <div className="flex justify-center pt-0.5">
+                        <span style={{ animation: "success-pulse 1.8s ease-in-out infinite" }} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] text-[11px] text-emerald-300 font-medium">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {s.text}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Globe visual */}
+        <GlobeVisual />
       </div>
 
-      {/* Globe visual */}
-      <GlobeVisual />
+      {/* Bottom stats bar — premium glass band spanning the full hero width */}
+      <HeroStats />
     </section>
   );
 }
 
+// ─── Hero centerpiece ─────────────────────────────────────────────────────────
+// A futuristic SVG/CSS globe with orbit rings + traveling satellites, floating
+// glass status cards and a focal live-session card. Pure transform/opacity
+// animation (no canvas / WebGL), GPU-friendly, with a calm
+// prefers-reduced-motion fallback. The globe stacks below the copy and scales
+// down (340px) on small screens; the side floating cards simplify away on mobile.
+
+const STAR_DOTS = [
+  { left: "12%", top: "20%", size: "2px", delay: "0s" },
+  { left: "82%", top: "12%", size: "3px", delay: "0.6s" },
+  { left: "68%", top: "30%", size: "2px", delay: "1.2s" },
+  { left: "24%", top: "70%", size: "2px", delay: "0.3s" },
+  { left: "88%", top: "62%", size: "2px", delay: "1.6s" },
+  { left: "44%", top: "8%", size: "2px", delay: "0.9s" },
+  { left: "8%", top: "48%", size: "3px", delay: "2.1s" },
+  { left: "92%", top: "40%", size: "2px", delay: "1.4s" },
+  { left: "56%", top: "90%", size: "2px", delay: "0.5s" },
+  { left: "34%", top: "42%", size: "2px", delay: "1.9s" },
+] as const;
+
+const TECH_CHIPS = [
+  { label: "React", dot: "#61dafb" },
+  { label: "TS", dot: "#3178c6" },
+  { label: "Next", dot: "#e5e7eb" },
+  { label: "Tailwind", dot: "#38bdf8" },
+] as const;
+
+const FLOAT_CARDS = [
+  { Icon: Code2, title: "Reviewing PR", meta: "Alice · React", tint: "text-indigo-300", glow: "99,102,241", pos: "top-[1%] left-[-3%]", anim: "gv-floatA", hideOnMobile: false },
+  { Icon: CheckCircle2, title: "Bug fixed", meta: "Sam · Node.js", tint: "text-emerald-300", glow: "52,211,153", pos: "top-[14%] right-[-4%]", anim: "gv-floatB", hideOnMobile: true },
+  { Icon: Users, title: "Pairing", meta: "Vite · TypeScript", tint: "text-purple-300", glow: "168,85,247", pos: "bottom-[17%] left-[-5%]", anim: "gv-floatC", hideOnMobile: true },
+  { Icon: BarChart3, title: "Optimizing", meta: "Liam · Performance", tint: "text-teal-300", glow: "45,212,191", pos: "bottom-[1%] right-[-2%]", anim: "gv-floatD", hideOnMobile: false },
+] as const;
+
+const ORBITS = [
+  { size: 126, tilt: 0, flatten: 0.3, dur: 38, reverse: false, color: "99,102,241", sat: "#a5b4fc" },
+  { size: 118, tilt: 62, flatten: 0.3, dur: 52, reverse: true, color: "168,85,247", sat: "#d8b4fe" },
+  { size: 118, tilt: -54, flatten: 0.3, dur: 46, reverse: false, color: "45,212,191", sat: "#5eead4" },
+] as const;
+
 function GlobeVisual() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef = useRef(0);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const S = 480;
-    const cx = S / 2, cy = S / 2, R = S * 0.365;
-    const D2R = Math.PI / 180;
-
-    const NODES: { lat: number; lon: number; init: string; col: string }[] = [
-      { lat: 40.7, lon: -74.0,  init: "JD", col: "#818cf8" },
-      { lat: 51.5, lon: -0.1,   init: "SK", col: "#c084fc" },
-      { lat: 48.8, lon: 2.3,    init: "MK", col: "#60a5fa" },
-      { lat: 35.7, lon: 139.7,  init: "AN", col: "#34d399" },
-      { lat: -33.9, lon: 151.2, init: "LV", col: "#f472b6" },
-      { lat: 19.1, lon: 72.9,   init: "RK", col: "#fb923c" },
-      { lat: 37.8, lon: -122.4, init: "PE", col: "#a78bfa" },
-      { lat: -23.5, lon: -46.6, init: "DB", col: "#4ade80" },
-    ];
-
-    const BASE_CONNS: [number, number][] = [
-      [0, 1], [1, 2], [0, 6], [2, 3], [3, 4], [5, 3], [7, 0], [6, 1],
-    ];
-
-    const ALL_CONN_POOL: [number, number][] = [];
-    for (let i = 0; i < NODES.length; i += 1) {
-      for (let j = i + 1; j < NODES.length; j += 1) {
-        ALL_CONN_POOL.push([i, j]);
-      }
-    }
-
-    const BUBBLES: { src: number; dst: number; msg: string; start: number; dur: number }[] = [
-      { src: 0, dst: 1, msg: "Need help with React state", start: 0,    dur: 5200 },
-      { src: 6, dst: 3, msg: "Reviewing PR",               start: 2000, dur: 4500 },
-      { src: 3, dst: 1, msg: "Booked 30 min",              start: 1200, dur: 4800 },
-      { src: 4, dst: 6, msg: "Bug fixed",                  start: 3200, dur: 3800 },
-      { src: 7, dst: 2, msg: "Session confirmed",          start: 1800, dur: 5000 },
-    ];
-
-    const startTime = Date.now();
-
-    const seededPick = (slot: number, count: number) => {
-      const pool = [...ALL_CONN_POOL];
-      const picked: [number, number][] = [...BASE_CONNS];
-      let seed = (slot + 1) * 2654435761;
-      while (picked.length < count && pool.length > 0) {
-        seed = (seed * 1664525 + 1013904223) >>> 0;
-        const idx = seed % pool.length;
-        const c = pool.splice(idx, 1)[0];
-        if (!c) break;
-        const exists = picked.some(([a, b]) => (a === c[0] && b === c[1]) || (a === c[1] && b === c[0]));
-        if (!exists) picked.push(c);
-      }
-      return picked;
-    };
-
-    const project = (lat: number, lon: number, rot: number) => {
-      const la = lat * D2R, lo = lon * D2R + rot;
-      return { x: Math.cos(la) * Math.sin(lo), y: Math.sin(la), z: Math.cos(la) * Math.cos(lo) };
-    };
-
-    const toScr = (x: number, y: number, z: number) => ({
-      sx: cx + R * x,
-      sy: cy - R * y,
-      vis: z > -0.08,
-      a: Math.max(0, Math.min(1, (z + 0.6) / 1.4)),
-    });
-
-    const bezPt = (t: number, ax: number, ay: number, cpx: number, cpy: number, bx: number, by: number) => ({
-      x: (1 - t) ** 2 * ax + 2 * (1 - t) * t * cpx + t ** 2 * bx,
-      y: (1 - t) ** 2 * ay + 2 * (1 - t) * t * cpy + t ** 2 * by,
-    });
-
-    const rrect = (x: number, y: number, w: number, h: number, r: number) => {
-      ctx.beginPath();
-      ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
-      ctx.arcTo(x + w, y, x + w, y + h, r); ctx.lineTo(x + w, y + h - r);
-      ctx.arcTo(x + w, y + h, x, y + h, r); ctx.lineTo(x + r, y + h);
-      ctx.arcTo(x, y + h, x, y, r); ctx.lineTo(x, y + r);
-      ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
-    };
-
-    const frame = () => {
-      const elapsed = Date.now() - startTime;
-      const rot = elapsed * 0.00022;
-      const connSlot = Math.floor(elapsed / 3800);
-      const activeConns = seededPick(connSlot, 11);
-      ctx.clearRect(0, 0, S, S);
-
-      // Ambient glow behind globe
-      const glow = ctx.createRadialGradient(cx, cy, R * 0.3, cx, cy, R * 1.4);
-      glow.addColorStop(0, "rgba(99,102,241,0.07)");
-      glow.addColorStop(0.5, "rgba(139,92,246,0.05)");
-      glow.addColorStop(1, "transparent");
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, S, S);
-
-      // Globe rim
-      ctx.beginPath();
-      ctx.arc(cx, cy, R, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(99,102,241,0.18)";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Grid lines clipped to sphere surface
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, R - 1, 0, Math.PI * 2);
-      ctx.clip();
-      for (let lat = -75; lat <= 75; lat += 25) {
-        ctx.beginPath();
-        let fw = true, wv = false;
-        for (let lo = -180; lo <= 181; lo += 2) {
-          const p = project(lat, lo, rot), s = toScr(p.x, p.y, p.z);
-          if (s.vis) { (fw || !wv) ? ctx.moveTo(s.sx, s.sy) : ctx.lineTo(s.sx, s.sy); fw = false; }
-          wv = s.vis;
-        }
-        ctx.strokeStyle = "rgba(99,102,241,0.10)"; ctx.lineWidth = 0.5; ctx.stroke();
-      }
-      for (let lo = -165; lo < 180; lo += 25) {
-        ctx.beginPath();
-        let fw = true, wv = false;
-        for (let lat2 = -85; lat2 <= 85; lat2 += 2) {
-          const p = project(lat2, lo, rot), s = toScr(p.x, p.y, p.z);
-          if (s.vis) { (fw || !wv) ? ctx.moveTo(s.sx, s.sy) : ctx.lineTo(s.sx, s.sy); fw = false; }
-          wv = s.vis;
-        }
-        ctx.strokeStyle = "rgba(99,102,241,0.10)"; ctx.lineWidth = 0.5; ctx.stroke();
-      }
-      ctx.restore();
-
-      // Project all node positions
-      const np = NODES.map((n) => {
-        const p = project(n.lat, n.lon, rot);
-        return { ...toScr(p.x, p.y, p.z), col: n.col, init: n.init };
-      });
-
-      // Connection arcs between nodes (dynamic set rotates every few seconds)
-      activeConns.forEach(([ai, bi], ci) => {
-        const na = np[ai], nb = np[bi];
-        if (!na.vis || !nb.vis) return;
-        const mx = (na.sx + nb.sx) / 2, my = (na.sy + nb.sy) / 2;
-        const dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy) || 1;
-        const cpx = mx + (dx / dl) * R * 0.26, cpy = my + (dy / dl) * R * 0.26;
-        ctx.beginPath(); ctx.moveTo(na.sx, na.sy); ctx.quadraticCurveTo(cpx, cpy, nb.sx, nb.sy);
-        const flow = 0.75 + 0.25 * Math.sin((elapsed / 880) + ci);
-        ctx.strokeStyle = `rgba(139,92,246,${+(Math.min(na.a, nb.a) * 0.34 * flow).toFixed(3)})`;
-        ctx.lineWidth = 0.9; ctx.stroke();
-      });
-
-      // Developer node glows, dots and initials (active/idle brightness variation)
-      np.forEach(({ sx, sy, vis, a, col, init }, ni) => {
-        if (!vis) return;
-        const pulse = 0.72 + 0.28 * Math.sin((elapsed / 1200) + ni * 0.85);
-        const activeBoost = (Math.floor(elapsed / 3000) + ni) % 3 === 0 ? 1.18 : 0.92;
-        const alpha = Math.min(1, a * pulse * activeBoost);
-        ctx.globalAlpha = alpha;
-        const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, 16);
-        g.addColorStop(0, col + "50"); g.addColorStop(1, "transparent");
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, 16, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(sx, sy, 3.2 + pulse * 0.8, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill();
-        ctx.font = "bold 8.5px system-ui,sans-serif";
-        ctx.fillStyle = "rgba(255,255,255,0.7)";
-        ctx.textAlign = "center"; ctx.textBaseline = "top";
-        ctx.fillText(init, sx, sy + 7.5);
-        ctx.globalAlpha = 1;
-      });
-
-      // Traveling message bubbles
-      BUBBLES.forEach((b) => {
-        const cycle = b.dur + 2600;
-        const t2 = (elapsed - b.start + cycle * 20) % cycle;
-        if (t2 > b.dur) return;
-        const t = t2 / b.dur;
-        const na = np[b.src], nb = np[b.dst];
-        if (!na.vis || !nb.vis) return;
-        const mx = (na.sx + nb.sx) / 2, my = (na.sy + nb.sy) / 2;
-        const dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy) || 1;
-        const cpx = mx + (dx / dl) * R * 0.26, cpy = my + (dy / dl) * R * 0.26;
-        const bp = bezPt(t, na.sx, na.sy, cpx, cpy, nb.sx, nb.sy);
-        const fade = t < 0.1 ? t / 0.1 : t > 0.85 ? (1 - t) / 0.15 : 1;
-        ctx.font = "bold 9.5px system-ui,sans-serif";
-        const tw = ctx.measureText(b.msg).width, pw = tw + 14, ph = 20;
-        ctx.globalAlpha = fade * 0.93;
-        rrect(bp.x - pw / 2, bp.y - ph / 2, pw, ph, ph / 2);
-        ctx.fillStyle = "rgba(10,10,22,0.93)"; ctx.fill();
-        ctx.strokeStyle = "rgba(139,92,246,0.5)"; ctx.lineWidth = 0.75; ctx.stroke();
-        ctx.fillStyle = "rgba(210,210,255,0.92)";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(b.msg, bp.x, bp.y + 0.5);
-        ctx.globalAlpha = 1;
-      });
-
-      rafRef.current = requestAnimationFrame(frame);
-    };
-
-    rafRef.current = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
+  // 400×400 viewBox sphere, radius 150 centered at (200,200).
+  const R = 150;
+  const meridianRx = [150, 116, 74, 26];
+  const parallelOffsets = [0, 42, 84, 118];
 
   return (
-    <div className="relative flex items-center justify-center w-full">
+    <div className="relative mx-auto w-full max-w-[340px] sm:max-w-[440px] aspect-square">
+      <style>{`
+        @keyframes gv-halo  { 0%,100%{opacity:.45} 50%{opacity:.8} }
+        @keyframes gv-sheen { to { transform: rotate(360deg) } }
+        @keyframes gv-orbit { to { transform: rotate(360deg) } }
+        @keyframes gv-twinkle { 0%,100%{opacity:.15} 50%{opacity:.65} }
+        @keyframes gv-floatA { 0%,100%{transform:translate(0,0)} 50%{transform:translate(6px,-12px)} }
+        @keyframes gv-floatB { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-8px,-9px)} }
+        @keyframes gv-floatC { 0%,100%{transform:translate(0,0)} 50%{transform:translate(7px,10px)} }
+        @keyframes gv-floatD { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-6px,11px)} }
+        @keyframes gv-livePing { 0%{transform:scale(1);opacity:.7} 75%,100%{transform:scale(2.4);opacity:0} }
+        .gv-orbit { animation-name: gv-orbit; animation-timing-function: linear; animation-iteration-count: infinite; transform-origin: 50% 50%; }
+        .gv-sheen { animation: gv-sheen 28s linear infinite; }
+        .gv-halo  { animation: gv-halo 6s ease-in-out infinite; }
+        .gv-twinkle { animation: gv-twinkle 4s ease-in-out infinite; }
+        .gv-live-ping { animation: gv-livePing 2s ease-out infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .gv-orbit, .gv-sheen, .gv-halo, .gv-twinkle, .gv-live-ping, .gv-float { animation: none !important; }
+        }
+      `}</style>
+
+      {/* Ambient radial glow behind the globe */}
       <div
-        className="absolute inset-[8%] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(circle,rgba(99,102,241,0.22) 0%,rgba(139,92,246,0.14) 42%,transparent 68%)",
-          filter: "blur(32px)",
-        }}
+        className="absolute inset-[6%] rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(99,102,241,0.22) 0%, rgba(139,92,246,0.14) 42%, transparent 68%)", filter: "blur(36px)" }}
         aria-hidden
       />
-      <canvas
-        ref={canvasRef}
-        width={480}
-        height={480}
-        className="relative w-full max-w-[440px] aspect-square"
+
+      {/* Star dots */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden>
+        {STAR_DOTS.map((s, i) => (
+          <span
+            key={i}
+            className="gv-twinkle absolute rounded-full bg-white"
+            style={{ left: s.left, top: s.top, width: s.size, height: s.size, animationDelay: s.delay, opacity: 0.4 }}
+          />
+        ))}
+      </div>
+
+      {/* The globe — SVG wireframe + dotted texture + shading + base halo */}
+      <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full" aria-hidden>
+        <defs>
+          <radialGradient id="gv-body" cx="38%" cy="32%" r="80%">
+            <stop offset="0%" stopColor="#1b1b35" />
+            <stop offset="55%" stopColor="#101024" />
+            <stop offset="100%" stopColor="#08080f" />
+          </radialGradient>
+          <radialGradient id="gv-shade" cx="34%" cy="28%" r="78%">
+            <stop offset="0%" stopColor="rgba(165,180,252,0.18)" />
+            <stop offset="45%" stopColor="rgba(0,0,0,0)" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.55)" />
+          </radialGradient>
+          <radialGradient id="gv-rim" cx="50%" cy="50%" r="50%">
+            <stop offset="78%" stopColor="rgba(129,140,248,0)" />
+            <stop offset="100%" stopColor="rgba(129,140,248,0.35)" />
+          </radialGradient>
+          <pattern id="gv-dots" width="13" height="13" patternUnits="userSpaceOnUse">
+            <circle cx="1.4" cy="1.4" r="1.1" fill="#a5b4fc" fillOpacity="0.5" />
+          </pattern>
+          <clipPath id="gv-clip"><circle cx="200" cy="200" r="150" /></clipPath>
+        </defs>
+
+        {/* Glowing base ring / halo at the bottom */}
+        <ellipse className="gv-halo" cx="200" cy="338" rx="150" ry="26" fill="none" stroke="#2dd4bf" strokeOpacity="0.5" strokeWidth="2" style={{ filter: "blur(2px)" }} />
+        <ellipse cx="200" cy="338" rx="150" ry="26" fill="none" stroke="#818cf8" strokeOpacity="0.45" strokeWidth="1" />
+
+        {/* Planet body + clipped surface */}
+        <circle cx="200" cy="200" r="150" fill="url(#gv-body)" />
+        <g clipPath="url(#gv-clip)">
+          <rect x="50" y="50" width="300" height="300" fill="url(#gv-dots)" opacity="0.5" />
+          {parallelOffsets.map((d) => {
+            const rx = Math.sqrt(Math.max(0, R * R - d * d));
+            const ry = Math.max(3, rx * 0.16);
+            return (
+              <g key={`p${d}`} stroke="#818cf8" strokeOpacity="0.16" strokeWidth="1" fill="none">
+                <ellipse cx="200" cy={200 - d} rx={rx} ry={ry} />
+                {d !== 0 && <ellipse cx="200" cy={200 + d} rx={rx} ry={ry} />}
+              </g>
+            );
+          })}
+          {meridianRx.map((rx) => (
+            <ellipse key={`m${rx}`} cx="200" cy="200" rx={rx} ry="150" fill="none" stroke="#818cf8" strokeOpacity="0.16" strokeWidth="1" />
+          ))}
+          <circle cx="200" cy="200" r="150" fill="url(#gv-shade)" />
+        </g>
+
+        {/* Rim light */}
+        <circle cx="200" cy="200" r="150" fill="url(#gv-rim)" />
+        <circle cx="200" cy="200" r="150" fill="none" stroke="#818cf8" strokeOpacity="0.35" strokeWidth="1" />
+      </svg>
+
+      {/* Slowly rotating sheen over the sphere (sphere = 75% of the box) */}
+      <div className="absolute inset-[12.5%] rounded-full overflow-hidden pointer-events-none" aria-hidden>
+        <div
+          className="gv-sheen absolute inset-[-25%]"
+          style={{ background: "conic-gradient(from 0deg, transparent 0deg, rgba(129,140,248,0.10) 55deg, transparent 130deg, transparent 360deg)" }}
+        />
+      </div>
+
+      {/* Orbit rings + traveling satellites (whole tilted ellipse rotates slowly) */}
+      {ORBITS.map((o, i) => (
+        <div
+          key={i}
+          className="gv-orbit absolute pointer-events-none"
+          aria-hidden
+          style={{
+            width: `${o.size}%`,
+            height: `${o.size}%`,
+            left: "50%",
+            top: "50%",
+            marginLeft: `${-o.size / 2}%`,
+            marginTop: `${-o.size / 2}%`,
+            animationDuration: `${o.dur}s`,
+            animationDirection: o.reverse ? "reverse" : "normal",
+          }}
+        >
+          <div className="absolute inset-0" style={{ transform: `rotate(${o.tilt}deg)` }}>
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{ transform: `scaleY(${o.flatten})`, border: `1px solid rgba(${o.color},0.45)`, boxShadow: `0 0 14px rgba(${o.color},0.3)` }}
+            />
+            <span
+              className="absolute left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{ top: `${(1 - o.flatten) * 50}%`, background: o.sat, boxShadow: `0 0 10px 2px rgba(${o.color},0.7)` }}
+            />
+          </div>
+        </div>
+      ))}
+
+      {/* Floating glass status cards */}
+      {FLOAT_CARDS.map((c) => (
+        <div
+          key={c.title}
+          className={`gv-float absolute ${c.pos} ${c.hideOnMobile ? "hidden sm:flex" : "flex"} items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-md px-3 py-2`}
+          style={{ animation: `${c.anim} 7s ease-in-out infinite`, boxShadow: `0 8px 30px -12px rgba(${c.glow},0.6)` }}
+        >
+          <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] ${c.tint}`}>
+            <c.Icon className="h-3.5 w-3.5" />
+          </span>
+          <span className="leading-tight">
+            <span className="block text-[11px] font-medium text-zinc-100">{c.title}</span>
+            <span className="block text-[10px] text-zinc-500">{c.meta}</span>
+          </span>
+        </div>
+      ))}
+
+      {/* Focal glassmorphism card — live session */}
+      <div className="absolute left-1/2 top-1/2 w-[62%] max-w-[230px] -translate-x-1/2 -translate-y-1/2">
+        <div className="relative rounded-2xl border border-white/12 bg-zinc-950/55 backdrop-blur-md p-4 shadow-[0_0_40px_-8px_rgba(139,92,246,0.5)]">
+          <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-300/50 to-transparent" aria-hidden />
+          <div className="flex items-center gap-1.5">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="gv-live-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-300">Live session</span>
+          </div>
+          <div className="mt-2 text-sm font-semibold text-white">React debugging</div>
+          <div className="text-[11px] text-zinc-400">Solved in 28 min</div>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {TECH_CHIPS.map((t) => (
+              <span key={t.label} className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-medium text-zinc-300">
+                <span className="h-1 w-1 rounded-full" style={{ background: t.dot }} />
+                {t.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Bottom hero stats bar (count-up on entry) ────────────────────────────────
+const HERO_STATS = [
+  { Icon: Users, value: 30, suffix: "+", label: "Sessions simulated", sub: "Real scenarios. Real help.", tint: "text-indigo-300", ring: "border-indigo-400/30" },
+  { Icon: ShieldCheck, value: 6, suffix: "", label: "Developer profiles", sub: "Vetted. Trusted. Proven.", tint: "text-purple-300", ring: "border-purple-400/30" },
+  { Icon: Zap, value: 3, suffix: "", label: "Booking states", sub: "Instant. Simple. Clear.", tint: "text-teal-300", ring: "border-teal-400/30" },
+  { Icon: ThumbsUp, value: 100, suffix: "%", label: "Responsive experience", sub: "Fast. Smooth. Reliable.", tint: "text-emerald-300", ring: "border-emerald-400/30" },
+] as const;
+
+function HeroStat({ stat, active, reduced }: { stat: (typeof HERO_STATS)[number]; active: boolean; reduced: boolean }) {
+  const n = useCountUp(stat.value, active, reduced);
+  const Icon = stat.Icon;
+  return (
+    <div className="group relative flex flex-col gap-2 bg-[#0b0c10] px-6 py-7 sm:px-7 sm:py-8 transition-colors hover:bg-white/[0.02]">
+      <span className={`flex h-9 w-9 items-center justify-center rounded-lg border ${stat.ring} bg-white/[0.03] ${stat.tint}`}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="mt-1 text-4xl sm:text-5xl font-semibold tracking-tight text-white tabular-nums">
+        {Math.round(n)}
+        <span className="bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">{stat.suffix}</span>
+      </span>
+      <span className="text-sm font-medium text-white">{stat.label}</span>
+      <span className="text-xs text-zinc-500 leading-snug">{stat.sub}</span>
+    </div>
+  );
+}
+
+function HeroStats() {
+  const reduced = usePrefersReducedMotion();
+  const [ref, inView] = useInView<HTMLDivElement>();
+  return (
+    <div ref={ref} className="relative mt-16 lg:mt-20">
+      <div
+        className="absolute -inset-x-4 -inset-y-6 pointer-events-none"
+        aria-hidden
+        style={{ background: "radial-gradient(60% 80% at 50% 50%, rgba(99,102,241,0.12), rgba(45,212,191,0.06) 55%, transparent 80%)", filter: "blur(20px)" }}
       />
+      <div className="relative rounded-3xl border border-white/10 overflow-hidden shadow-[0_0_60px_-24px_rgba(99,102,241,0.55)]">
+        <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-300/40 to-transparent z-10" aria-hidden />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.07]">
+          {HERO_STATS.map((s) => (
+            <HeroStat key={s.label} stat={s} active={inView} reduced={reduced} />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
